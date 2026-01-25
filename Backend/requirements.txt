@@ -1,13 +1,22 @@
 Flask==2.2.5
+gunicorn==20.1.0
+
+# Database
 pymongo==4.3.3
 dnspython==2.4.2
-python-dotenv==1.0.0
-spacy==3.6.2
+
+# NLP & ML
+spacy==3.6.1
 scikit-learn==1.2.2
 nltk==3.8.1
-pandas==2.1.1
-numpy==1.25.0
-matplotlib==3.8.0
-werkzeug==2.2.5
+
+# Data
+numpy==1.24.4
+pandas==2.0.3
+
+# Security
 bcrypt==4.0.1
-gunicorn==20.1.0
+python-dotenv==1.0.0
+
+# Flask internal
+werkzeug==2.2.3

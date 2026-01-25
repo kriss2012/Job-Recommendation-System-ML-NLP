@@ -1,31 +1,39 @@
-# Use official Python base image
-FROM python:3.9-slim
+# Use stable Debian base (NOT slim, NOT trixie)
+FROM python:3.9-bullseye
 
 # Set working directory
 WORKDIR /app
 
-# Prevents Python from writing .pyc files
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+# Environment configs
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies
+# Install system dependencies REQUIRED for NLP
 RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
     build-essential \
-    && apt-get clean \
+    curl \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements file
+# Copy requirements first (for caching)
 COPY requirements.txt .
 
-# Install Python dependencies
+# Upgrade pip
 RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
 
-# Copy application code
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Download spaCy model explicitly
+RUN python -m spacy download en_core_web_sm
+
+# Copy project files
 COPY . .
 
-# Expose the port your Flask app runs on
-EXPOSE 5002
+# Railway exposes PORT dynamically
+EXPOSE 8080
 
-# Default command to run your app
-CMD ["python", "app.py"]
+# Production server
+CMD ["gunicorn", "--bind", "0.0.0.0:${PORT}", "app:app"]
