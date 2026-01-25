@@ -26,9 +26,6 @@ RUN pip install --upgrade pip
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Download spaCy model explicitly
-RUN python -m spacy download en_core_web_sm
-
 # Copy project files
 COPY . .
 
