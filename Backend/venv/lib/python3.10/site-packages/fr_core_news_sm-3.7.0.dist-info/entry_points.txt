@@ -1,2 +1,0 @@
-[spacy_models]
-fr_core_news_sm = fr_core_news_sm

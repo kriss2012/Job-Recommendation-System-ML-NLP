@@ -1,26 +1,26 @@
+# Git
 .git
 .gitignore
-__pycache__
+
+# Python
+__pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-.env
-.venv
-venv
-env
+# Environments
+venv/
+.venv/
+env/
 
-node_modules
-dist
-build
-
-*.csv
-*.xlsx
-*.pkl
-*.joblib
-
+# Data & models
 data/
 models/
-notebooks/
+*.pkl
+*.joblib
+*.csv
+*.xlsx
 
-README.md
+# Misc
+node_modules/
+.DS_Store
