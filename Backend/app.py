@@ -21,6 +21,15 @@ from Models.offres_emploi_train import OffreEmploiTrain
 
 nlp = spacy.load("en_core_web_sm")
 
+
+# Load Spacy model with error handling
+try:
+    nlp = spacy.load("en_core_web_sm")
+except:
+    from spacy.cli import download
+    download("en_core_web_sm")
+    nlp = spacy.load("en_core_web_sm")
+
 # TF-IDF Vectorizer setup
 custom_stopwords = [
     "the", "and", "of", "for", "with", "in", "on", "at", "by", "an",
@@ -147,3 +156,5 @@ def process_uploaded_cv():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
+    
+
