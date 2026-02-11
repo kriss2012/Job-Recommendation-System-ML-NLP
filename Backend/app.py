@@ -118,9 +118,15 @@ def process_uploaded_cv():
     data = []
 
     for doc in cursor:
-        name = doc['name']
-        combined_text = doc['combined_text']
-        link = doc['lien']
+        name = doc.get('name', 'Job Offer')
+        combined_text = doc.get('combined_text', '')
+        link = doc.get('lien', '#')
+        description = doc.get('description', combined_text[:200] + '...' if len(combined_text) > 200 else combined_text)
+        location = doc.get('location', 'Not specified')
+        job_type = doc.get('job_type', 'Not specified')
+        salary = doc.get('salary', 'Not specified')
+        company = doc.get('company', 'Not specified')
+        
         job_offer = OffreEmploi(name, combined_text, link)
 
         cleaned_offer_text = clean_and_preprocess(job_offer.combined_text)
@@ -129,30 +135,60 @@ def process_uploaded_cv():
 
         if similarity_score is not None:
             similarity_score = similarity_score[0][0]
-            similarity_entry = SimilarityOffre(link, similarity_score)
-            data.append(similarity_entry)
+            data.append({
+                'name': name,
+                'link': link,
+                'description': description,
+                'location': location,
+                'job_type': job_type,
+                'salary': salary,
+                'company': company,
+                'similarity': similarity_score
+            })
             similarities.append(similarity_score)
             offer_names.append(name)
 
-    filtered_recommendations = [
-        {'lienOffre': job.lien, 'similarity': job.similarity}
-        for job in data if job.similarity > 0.2
-    ]
+    # Filter and sort recommendations
+    filtered_recommendations = [job for job in data if job['similarity'] > 0.2]
     filtered_recommendations.sort(key=lambda x: x['similarity'], reverse=True)
+    
+    # Get top 10 for chart
+    top_jobs = filtered_recommendations[:10] if filtered_recommendations else data[:10]
+    top_names = [job['name'] for job in top_jobs]
+    top_scores = [job['similarity'] for job in top_jobs]
 
-    plt.figure(figsize=(10, 6))
-    plt.bar(offer_names, similarities, color='blue')
-    plt.axhline(y=0.9, color='red', linestyle='--', label='CV Similarity Threshold')
-    plt.title("Similarity between user's resume and job offers")
-    plt.xlabel('Job Offer')
-    plt.ylabel('Similarity Score')
-    plt.xticks(rotation=45)
-    plt.legend()
+    # Create enhanced visualization
+    import matplotlib.patches as mpatches
+    fig, ax = plt.subplots(figsize=(14, 7))
+    bars = ax.barh(top_names, top_scores, color=['#2ecc71' if score > 0.7 else '#f39c12' if score > 0.4 else '#e74c3c' for score in top_scores])
+    ax.axvline(x=0.7, color='green', linestyle='--', linewidth=2, label='High Match (0.7)')
+    ax.axvline(x=0.4, color='orange', linestyle='--', linewidth=2, label='Medium Match (0.4)')
+    ax.set_xlabel('Similarity Score', fontsize=12, fontweight='bold')
+    ax.set_title("Job Recommendations Based on Your Resume", fontsize=14, fontweight='bold')
+    ax.set_xlim(0, 1)
+    ax.legend(loc='lower right')
+    
+    # Add score labels on bars
+    for i, (bar, score) in enumerate(zip(bars, top_scores)):
+        ax.text(score + 0.02, bar.get_y() + bar.get_height()/2, f'{score:.2%}', 
+                va='center', fontweight='bold')
+    
+    plt.tight_layout()
     chart_path = os.path.join(os.path.dirname(__file__), 'static', 'similarite.png')
-    plt.savefig(chart_path)
+    plt.savefig(chart_path, dpi=100, bbox_inches='tight')
     plt.close()
 
-    return render_template('offre.html', similarity_image='similarite.png', recommendations=filtered_recommendations)
+    stats = {
+        'total_jobs': len(data),
+        'matched_jobs': len(filtered_recommendations),
+        'avg_similarity': sum(job['similarity'] for job in data) / len(data) if data else 0,
+        'top_score': max([job['similarity'] for job in data]) if data else 0
+    }
+
+    return render_template('offre.html', 
+                         similarity_image='similarite.png', 
+                         recommendations=filtered_recommendations,
+                         stats=stats)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5002))
