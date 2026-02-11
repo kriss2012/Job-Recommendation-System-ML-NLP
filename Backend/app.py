@@ -19,16 +19,16 @@ from Models.similarityOffre import SimilarityOffre
 from Models.offres_emploi_test import OffreEmploiTest
 from Models.offres_emploi_train import OffreEmploiTrain
 
-nlp = spacy.load("en_core_web_sm")
-
-
 # Load Spacy model with error handling
 try:
     nlp = spacy.load("en_core_web_sm")
-except:
+    print("✓ Spacy model loaded successfully")
+except OSError:
+    print("⚠ Downloading Spacy model...")
     from spacy.cli import download
     download("en_core_web_sm")
     nlp = spacy.load("en_core_web_sm")
+    print("✓ Spacy model installed and loaded")
 
 # TF-IDF Vectorizer setup
 custom_stopwords = [
@@ -53,7 +53,7 @@ def login():
         password = request.form.get('password')
         user = user_collection.find_one({'email': email})
         if user and bcrypt.checkpw(password.encode('utf-8'), user['password']):
-            return redirect('index_cv')
+            return redirect(url_for('index_cv'))
         else:
             error_message = "Incorrect email or password"
     return render_template('index.html', error_message=error_message)
@@ -148,13 +148,15 @@ def process_uploaded_cv():
     plt.ylabel('Similarity Score')
     plt.xticks(rotation=45)
     plt.legend()
-    plt.savefig('static/similarite.png')
+    chart_path = os.path.join(os.path.dirname(__file__), 'static', 'similarite.png')
+    plt.savefig(chart_path)
     plt.close()
 
     return render_template('offre.html', similarity_image='similarite.png', recommendations=filtered_recommendations)
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port)
+    port = int(os.environ.get("PORT", 5002))
+    print(f"\n🚀 Starting Flask app on http://localhost:{port}")
+    app.run(host="0.0.0.0", port=port, debug=False)
     
 

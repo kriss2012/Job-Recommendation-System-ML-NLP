@@ -1,9 +1,13 @@
 from pymongo import MongoClient
 from config import MONGO_URI, DB_NAME
 
-client = MongoClient(MONGO_URI)
-db = client[DB_NAME]
-# Atlas connection configuration
-MONGO_URI_ATLAS = "mongodb+srv://echorepairs45_db_user:Lddq4RVpKlZOb5Ws@cluster0.lhd9g1g.mongodb.net/?appName=Cluster0"
-client_atlas = MongoClient(MONGO_URI_ATLAS)
-db_atlas = client_atlas[DB_NAME]
+# MongoDB Atlas connection
+try:
+    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+    # Verify connection
+    client.admin.command('ping')
+    db = client[DB_NAME]
+    print(f"✓ Connected to MongoDB Atlas: {DB_NAME}")
+except Exception as e:
+    print(f"✗ MongoDB Connection Error: {e}")
+    raise
