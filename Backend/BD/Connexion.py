@@ -7,7 +7,7 @@ try:
     # Verify connection
     client.admin.command('ping')
     db = client[DB_NAME]
-    print(f"✓ Connected to MongoDB Atlas: {DB_NAME}")
+    print(f"[OK] Connected to MongoDB Atlas: {DB_NAME}")
 except Exception as e:
-    print(f"✗ MongoDB Connection Error: {e}")
+    print(f"[ERROR] MongoDB Connection Error: {e}")
     raise
