@@ -22,13 +22,13 @@ from Models.offres_emploi_train import OffreEmploiTrain
 # Load Spacy model with error handling
 try:
     nlp = spacy.load("en_core_web_sm")
-    print("✓ Spacy model loaded successfully")
+    print("[OK] Spacy model loaded successfully")
 except OSError:
-    print("⚠ Downloading Spacy model...")
+    print("[INFO] Downloading Spacy model...")
     from spacy.cli import download
     download("en_core_web_sm")
     nlp = spacy.load("en_core_web_sm")
-    print("✓ Spacy model installed and loaded")
+    print("[OK] Spacy model installed and loaded")
 
 # TF-IDF Vectorizer setup
 custom_stopwords = [
@@ -157,25 +157,45 @@ def process_uploaded_cv():
     top_names = [job['name'] for job in top_jobs]
     top_scores = [job['similarity'] for job in top_jobs]
 
-    # Create enhanced visualization
-    import matplotlib.patches as mpatches
-    fig, ax = plt.subplots(figsize=(14, 7))
-    bars = ax.barh(top_names, top_scores, color=['#2ecc71' if score > 0.7 else '#f39c12' if score > 0.4 else '#e74c3c' for score in top_scores])
-    ax.axvline(x=0.7, color='green', linestyle='--', linewidth=2, label='High Match (0.7)')
-    ax.axvline(x=0.4, color='orange', linestyle='--', linewidth=2, label='Medium Match (0.4)')
-    ax.set_xlabel('Similarity Score', fontsize=12, fontweight='bold')
-    ax.set_title("Job Recommendations Based on Your Resume", fontsize=14, fontweight='bold')
+    # Create enhanced visualization (Neo-Brutalist Styled)
+    fig, ax = plt.subplots(figsize=(14, 7), facecolor='#ffffff')
+    ax.set_facecolor('#ffffff')
+    
+    # Border & grid styling (brutalist heavy borders)
+    for spine in ['bottom', 'left', 'top', 'right']:
+        ax.spines[spine].set_color('#000000')
+        ax.spines[spine].set_linewidth(3)
+        
+    ax.tick_params(colors='#000000', labelsize=10, width=3)
+    
+    # Set labels
+    ax.set_xlabel('Similarity Score', fontsize=12, fontweight='bold', color='#000000', labelpad=10)
+    ax.set_title("Resume Match Similarity Analysis", fontsize=14, fontweight='black', color='#000000', pad=15)
     ax.set_xlim(0, 1)
-    ax.legend(loc='lower right')
     
-    # Add score labels on bars
-    for i, (bar, score) in enumerate(zip(bars, top_scores)):
-        ax.text(score + 0.02, bar.get_y() + bar.get_height()/2, f'{score:.2%}', 
-                va='center', fontweight='bold')
+    # Create horizontal bars (Yellow bars with thick black border)
+    bars = ax.barh(top_names, top_scores, color='#ffe600', edgecolor='#000000', linewidth=2.5, height=0.6)
     
+    # Threshold lines
+    ax.axvline(x=0.7, color='#4ade80', linestyle='--', linewidth=2.5, label='High Match Threshold (0.7)')
+    ax.axvline(x=0.4, color='#facc15', linestyle='--', linewidth=2.5, label='Medium Match Threshold (0.4)')
+    
+    # Legend customization
+    legend = ax.legend(loc='lower right', facecolor='#ffffff', edgecolor='#000000')
+    legend.get_frame().set_linewidth(2.5)
+    for text in legend.get_texts():
+        text.set_color('#000000')
+        text.set_fontweight('bold')
+        text.set_fontsize(10)
+        
+    # Score labels on bars
+    for bar, score in zip(bars, top_scores):
+        ax.text(score + 0.02, bar.get_y() + bar.get_height()/2, f'{score:.1%}', 
+                va='center', fontweight='bold', color='#000000', fontsize=10)
+        
     plt.tight_layout()
     chart_path = os.path.join(os.path.dirname(__file__), 'static', 'similarite.png')
-    plt.savefig(chart_path, dpi=100, bbox_inches='tight')
+    plt.savefig(chart_path, dpi=100, bbox_inches='tight', facecolor=fig.get_facecolor(), edgecolor='none')
     plt.close()
 
     stats = {
@@ -192,7 +212,7 @@ def process_uploaded_cv():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5002))
-    print(f"\n🚀 Starting Flask app on http://localhost:{port}")
+    print(f"\n* Starting Flask app on http://localhost:{port}")
     app.run(host="0.0.0.0", port=port, debug=False)
     
 
