@@ -1,20 +1,133 @@
 {% extends 'layout.html' %}
+
 {% block content %}
-<style>
-  .js-fullheight {
-      background-image: none !important;
-  }
-</style>
-<div class="top-right">
-  <h2 class="heading-section">Upload Your Resume</h2>
-  <hr>
-  <form action="{{ url_for('process_uploaded_cv') }}" class="signin-form" method="POST" enctype="multipart/form-data">
-    <div class="form-group">
-      <label for="pdfFile" class="form-control">Select a Resume:</label>
-      <input type="file" name="pdfFile" id="pdfFile" accept=".pdf" required>
+<div class="upload-container">
+    <div class="section-header">
+        <h1>Upload Your Resume</h1>
+        <p>Upload your PDF resume to let our AI matches your skills with the best job opportunities</p>
     </div>
-    <div class="d-flex">
-      <button type="submit" class="form-control btn btn-primary submit px-3">Submit</button>
+    
+    <div class="glass-card">
+        <form action="{{ url_for('process_uploaded_cv') }}" method="POST" enctype="multipart/form-data" id="cv-upload-form" onsubmit="showLoading()">
+            <div class="drop-zone" id="drop-zone">
+                <div class="drop-zone-icon">
+                    <i class="fa-solid fa-file-pdf"></i>
+                </div>
+                <div class="drop-zone-text">
+                    <h3>Drag & Drop your Resume here</h3>
+                    <p>Supported format: PDF only (Max 5MB)</p>
+                </div>
+                <button type="button" class="btn-secondary-modern" style="width: auto; padding: 8px 20px;" onclick="document.getElementById('file-input').click()">
+                    Browse Files
+                </button>
+                <input type="file" name="pdfFile" id="file-input" accept=".pdf" required>
+            </div>
+            
+            <!-- File details pill shown after selecting a file -->
+            <div class="file-details" id="file-details">
+                <div class="drop-zone-icon" style="width: 40px; height: 40px; font-size: 16px; margin-bottom: 0;">
+                    <i class="fa-solid fa-circle-check" style="color: var(--success)"></i>
+                </div>
+                <div class="file-info">
+                    <div class="file-name" id="file-name">filename.pdf</div>
+                    <div class="file-size" id="file-size">0 KB</div>
+                </div>
+                <button type="button" class="btn-logout" style="padding: 6px 12px; font-size: 12px; background: transparent; border-color: transparent;" onclick="clearFileSelection(event)">
+                    <i class="fa-solid fa-trash"></i> Remove
+                </button>
+            </div>
+            
+            <div style="margin-top: 25px;">
+                <button type="submit" class="btn-primary-modern" id="submit-btn" disabled>
+                    <i class="fa-solid fa-magnifying-glass" style="margin-right: 8px;"></i> Analyze & Match Jobs
+                </button>
+            </div>
+        </form>
     </div>
-  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const fileDetails = document.getElementById('file-details');
+    const fileNameDisplay = document.getElementById('file-name');
+    const fileSizeDisplay = document.getElementById('file-size');
+    const submitBtn = document.getElementById('submit-btn');
+
+    // Drag and drop event handlers
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.add('dragover');
+    }
+
+    function unhighlight(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove('dragover');
+    }
+
+    dropZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length) {
+            fileInput.files = files;
+            updateFileDetails(files[0]);
+        }
+    }
+
+    // Direct input file change handler
+    fileInput.addEventListener('change', function(e) {
+        if (this.files.length) {
+            updateFileDetails(this.files[0]);
+        }
+    });
+
+    function updateFileDetails(file) {
+        if (file.type !== "application/pdf") {
+            alert("Please upload a PDF file only.");
+            clearFileSelection();
+            return;
+        }
+        
+        fileNameDisplay.textContent = file.name;
+        
+        // Format size
+        let sizeStr = "";
+        if (file.size < 1024 * 1024) {
+            sizeStr = (file.size / 1024).toFixed(1) + " KB";
+        } else {
+            sizeStr = (file.size / (1024 * 1024)).toFixed(1) + " MB";
+        }
+        fileSizeDisplay.textContent = sizeStr;
+        
+        // Show details, enable submit
+        fileDetails.style.display = 'flex';
+        dropZone.style.borderColor = 'var(--success)';
+        submitBtn.removeAttribute('disabled');
+    }
+
+    function clearFileSelection(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        fileInput.value = '';
+        fileDetails.style.display = 'none';
+        dropZone.style.borderColor = 'rgba(99, 102, 241, 0.3)';
+        submitBtn.setAttribute('disabled', 'true');
+    }
+</script>
 {% endblock %}
