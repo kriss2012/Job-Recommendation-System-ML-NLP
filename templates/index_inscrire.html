@@ -1,25 +1,53 @@
 {% extends 'layout.html' %}
+
 {% block content %}
-<form action="{{ url_for('signup') }}" method="POST" class="signin-form">
-  <div class="form-group">
-    <input type="text" class="form-control" name="prenom" placeholder="First Name" required>
-  </div>
-  <div class="form-group">
-    <input type="text" class="form-control" name="nom" placeholder="Last Name" required>
-  </div>
-  <div class="form-group">
-    <input type="text" class="form-control" name="email" placeholder="Email" required>
-  </div>
-  <div class="form-group">
-    <input type="password" class="form-control" name="password" placeholder="Password" required>
-  </div>
-  <div class="d-flex">
-    <button type="submit" class="form-control btn btn-primary submit px-3">Sign Up</button>
-  </div>
-  <div id="error-message">
-    {% if error_message %}
-      <p>{{ error_message }}</p>
-    {% endif %}
-  </div>
-</form>
+<div class="auth-wrapper" style="max-width: 500px;">
+    <div class="glass-card">
+        <div class="auth-header">
+            <h2>Create Account</h2>
+            <p>Sign up to analyze your resume and get immediate job matches</p>
+        </div>
+        
+        <!-- Error Alerts -->
+        {% if error_message %}
+        <div class="alert-error">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>{{ error_message }}</span>
+        </div>
+        {% endif %}
+        
+        <form action="{{ url_for('signup') }}" method="POST">
+            <div class="form-actions-split" style="grid-template-columns: 1fr 1fr; margin-bottom: 0;">
+                <div class="form-group">
+                    <label for="prenom">First Name</label>
+                    <input type="text" id="prenom" class="form-control-modern" name="prenom" placeholder="Jane" required>
+                </div>
+                <div class="form-group">
+                    <label for="nom">Last Name</label>
+                    <input type="text" id="nom" class="form-control-modern" name="nom" placeholder="Doe" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" class="form-control-modern" name="email" placeholder="jane.doe@example.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" class="form-control-modern" name="password" placeholder="••••••••" required>
+            </div>
+            
+            <div style="margin-top: 10px;">
+                <button type="submit" class="btn-primary-modern">
+                    <i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i> Register & Continue
+                </button>
+            </div>
+        </form>
+        
+        <div class="form-footer-link">
+            Already have an account? <a href="{{ url_for('home') }}">Log in here</a>
+        </div>
+    </div>
+</div>
 {% endblock %}
