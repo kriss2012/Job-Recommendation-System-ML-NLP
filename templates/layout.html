@@ -45,11 +45,9 @@
                     <a href="{{ url_for('index_cv') }}" class="nav-link {% if request.path == '/index_cv' %}active{% endif %}">
                         <i class="fa-solid fa-cloud-arrow-up"></i> Upload Resume
                     </a>
-                    {% if request.path == '/process_uploaded_cv' %}
-                        <a href="#" class="nav-link active">
-                            <i class="fa-solid fa-chart-simple"></i> Recommendations
-                        </a>
-                    {% endif %}
+                    <a href="{{ url_for('demo_match') }}" class="nav-link {% if request.path == '/process_uploaded_cv' or request.path == '/demo_match' %}active{% endif %}">
+                        <i class="fa-solid fa-chart-simple"></i> Recommendations
+                    </a>
                     <a href="{{ url_for('logout') }}" class="btn-logout">
                         <i class="fa-solid fa-right-from-bracket"></i> Logout
                     </a>
