@@ -28,8 +28,8 @@ async function checkApiHealth() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 4000); // 4s timeout
         
-        // We ping /seed endpoint which responds fast
-        const response = await fetch(`${url}/seed`, { 
+        // We ping /api/health endpoint which responds fast and safely
+        const response = await fetch(`${url}/api/health`, { 
             method: 'GET', 
             signal: controller.signal 
         });
@@ -41,3 +41,4 @@ async function checkApiHealth() {
         return false;
     }
 }
+
