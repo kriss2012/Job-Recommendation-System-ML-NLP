@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>CareerMatch AI - Sign Up</title>
+    
+    <!-- Premium Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Core Custom Stylesheet -->
+    <link rel="stylesheet" href="css/modern.css">
+</head>
+<body>
+
+    <!-- Ambient background gradient orbs -->
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Navigation Header -->
+    <header class="app-header">
+        <div class="header-container">
+            <a href="index.html" class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-briefcase"></i>
+                </div>
+                <span>CareerMatch AI</span>
+            </a>
+            
+            <nav class="nav-links">
+                <a href="index.html" class="nav-link">Login</a>
+                <a href="signup.html" class="nav-link active">Sign Up</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="app-main-content">
+        <div class="auth-wrapper" style="max-width: 500px;">
+            <div class="glass-card">
+                <div class="auth-header">
+                    <h2>Create Account</h2>
+                    <p>Sign up to analyze your resume and get immediate job matches</p>
+                </div>
+                
+                <!-- Error Alerts -->
+                <div id="error-alert" class="alert-error" style="display: none;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span id="error-text">Email already exists</span>
+                </div>
+                
+                <form id="signup-form">
+                    <div class="form-actions-split" style="grid-template-columns: 1fr 1fr; margin-bottom: 0;">
+                        <div class="form-group">
+                            <label for="prenom">First Name</label>
+                            <input type="text" id="prenom" class="form-control-modern" name="prenom" placeholder="Jane" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="nom">Last Name</label>
+                            <input type="text" id="nom" class="form-control-modern" name="nom" placeholder="Doe" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" class="form-control-modern" name="email" placeholder="jane.doe@example.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" class="form-control-modern" name="password" placeholder="••••••••" required>
+                    </div>
+                    
+                    <div style="margin-top: 10px;">
+                        <button type="submit" class="btn-primary-modern">
+                            <i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i> Register & Continue
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="form-footer-link">
+                    Already have an account? <a href="index.html">Log in here</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Professional Footer -->
+    <footer class="app-footer">
+        <div class="container">
+            <p>&copy; 2026 CareerMatch AI. Powered by advanced NLP & Machine Learning.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script>
+        // Check authentication state on page load
+        if (localStorage.getItem('user')) {
+            window.location.href = 'upload.html';
+        }
+
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const prenom = document.getElementById('prenom').value;
+            const nom = document.getElementById('nom').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorAlert = document.getElementById('error-alert');
+            const errorText = document.getElementById('error-text');
+
+            errorAlert.style.display = 'none';
+
+            try {
+                const response = await fetch(`${CONFIG.getApiUrl()}/api/signup`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ prenom, nom, email, password })
+                });
+
+                const data = await response.json();
+                if (response.ok && data.status === 'success') {
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    window.location.href = 'upload.html';
+                } else {
+                    errorText.textContent = data.message || 'Signup failed. Please try again.';
+                    errorAlert.style.display = 'flex';
+                }
+            } catch (err) {
+                console.error(err);
+                errorText.textContent = 'Unable to connect to the backend server. Please try again.';
+                errorAlert.style.display = 'flex';
+            }
+        });
+    </script>
+</body>
+</html>
