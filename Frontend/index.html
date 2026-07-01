@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>CareerMatch AI - Login</title>
+    
+    <!-- Premium Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Core Custom Stylesheet -->
+    <link rel="stylesheet" href="css/modern.css">
+    
+    <style>
+        /* Neo-Brutalist API Config Panel */
+        .api-config-trigger {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            background: var(--yellow);
+            border: var(--border-thick);
+            border-radius: var(--radius-boxy);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: var(--shadow-flat-sm);
+            z-index: 1000;
+            transition: var(--transition-pop);
+        }
+        .api-config-trigger:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0px #000000;
+        }
+        .api-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1001;
+            align-items: center;
+            justify-content: center;
+        }
+        .api-modal.active {
+            display: flex;
+        }
+        .api-modal-content {
+            background: #ffffff;
+            border: var(--border-thick);
+            border-radius: var(--radius-boxy);
+            padding: 30px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: var(--shadow-flat-lg);
+            position: relative;
+        }
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-weight: bold;
+        }
+        .api-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 800;
+            font-size: 12px;
+            text-transform: uppercase;
+            padding: 4px 8px;
+            border: var(--border-thin);
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+        .status-online { background-color: var(--success); }
+        .status-offline { background-color: var(--danger); }
+        .status-checking { background-color: var(--warning); }
+    </style>
+</head>
+<body>
+
+    <!-- Ambient background gradient orbs -->
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Navigation Header -->
+    <header class="app-header">
+        <div class="header-container">
+            <a href="index.html" class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-briefcase"></i>
+                </div>
+                <span>CareerMatch AI</span>
+            </a>
+            
+            <nav class="nav-links">
+                <a href="index.html" class="nav-link active">Login</a>
+                <a href="signup.html" class="nav-link">Sign Up</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="app-main-content">
+        <div class="auth-wrapper">
+            <div class="glass-card">
+                <div class="auth-header">
+                    <h2>Welcome Back</h2>
+                    <p>Access your AI-powered job recommendation dashboard</p>
+                </div>
+                
+                <!-- Connection Alert -->
+                <div id="connection-warning" class="alert-error" style="display: none; background: #fffbeb; color: #b45309; border-color: #facc15;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>Connecting to backend API... (First load on Render might take 30-50s to spin up)</span>
+                </div>
+                
+                <!-- Error Alerts -->
+                <div id="error-alert" class="alert-error" style="display: none;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span id="error-text">Incorrect email or password</span>
+                </div>
+                
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" class="form-control-modern" name="email" placeholder="name@company.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" class="form-control-modern" name="password" placeholder="••••••••" required>
+                    </div>
+                    
+                    <div class="form-actions-split">
+                        <button type="submit" class="btn-primary-modern">
+                            <i class="fa-solid fa-right-to-bracket" style="margin-right: 8px;"></i> Login
+                        </button>
+                        <a href="signup.html" class="btn-secondary-modern">
+                            <i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i> Sign Up
+                        </a>
+                    </div>
+                </form>
+                
+                <div class="form-footer-link">
+                    Don't have an account? <a href="signup.html">Create one here</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Professional Footer -->
+    <footer class="app-footer">
+        <div class="container">
+            <p>&copy; 2026 CareerMatch AI. Powered by advanced NLP & Machine Learning.</p>
+        </div>
+    </footer>
+
+    <!-- Settings Gear floating button -->
+    <div class="api-config-trigger" onclick="openSettings()" title="API Endpoint Settings">
+        <i class="fa-solid fa-gear"></i>
+    </div>
+
+    <!-- API configuration Modal -->
+    <div class="api-modal" id="api-modal">
+        <div class="api-modal-content">
+            <button class="close-modal" onclick="closeSettings()">&times;</button>
+            <h3 style="font-weight:900; text-transform:uppercase; margin-bottom:15px;">API Connection Settings</h3>
+            <p style="font-size:13px; font-weight:700; color:#4b5563; margin-bottom:15px;">
+                Specify the URL where your Render backend is running.
+            </p>
+            <div class="form-group" style="margin-bottom:15px;">
+                <label for="api-url-input">Backend URL</label>
+                <input type="text" id="api-url-input" class="form-control-modern" placeholder="e.g. https://your-backend.onrender.com">
+                <div class="api-status-badge status-checking" id="api-status-badge">
+                    <i class="fa-solid fa-spinner fa-spin"></i> Checking connection...
+                </div>
+            </div>
+            
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button type="button" class="btn-primary-modern" onclick="saveSettings()" style="padding:10px;">Save Settings</button>
+                <button type="button" class="btn-secondary-modern" onclick="resetSettings()" style="padding:10px;">Reset Default</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script>
+        // Check authentication state on page load
+        if (localStorage.getItem('user')) {
+            window.location.href = 'upload.html';
+        }
+
+        // Initialize Settings input fields
+        const modal = document.getElementById('api-modal');
+        const apiUrlInput = document.getElementById('api-url-input');
+        const badge = document.getElementById('api-status-badge');
+
+        function openSettings() {
+            apiUrlInput.value = CONFIG.getApiUrl();
+            modal.classList.add('active');
+            updateBadge();
+        }
+
+        function closeSettings() {
+            modal.classList.remove('active');
+        }
+
+        async function updateBadge() {
+            badge.className = 'api-status-badge status-checking';
+            badge.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking connection...';
+            
+            // Check health
+            const isOnline = await checkApiHealth();
+            if (isOnline) {
+                badge.className = 'api-status-badge status-online';
+                badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Connected';
+            } else {
+                badge.className = 'api-status-badge status-offline';
+                badge.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Offline / Inactive';
+            }
+        }
+
+        apiUrlInput.addEventListener('input', debounce(updateBadge, 800));
+
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        function saveSettings() {
+            CONFIG.setApiUrl(apiUrlInput.value);
+            closeSettings();
+            checkAndAlertBackend();
+        }
+
+        function resetSettings() {
+            CONFIG.setApiUrl(null);
+            apiUrlInput.value = CONFIG.getApiUrl();
+            updateBadge();
+        }
+
+        // Check backend on load and show info alert
+        async function checkAndAlertBackend() {
+            const warningEl = document.getElementById('connection-warning');
+            warningEl.style.display = 'flex';
+            const online = await checkApiHealth();
+            if (online) {
+                warningEl.style.display = 'none';
+            } else {
+                warningEl.querySelector('span').textContent = 'Backend server appears offline. Make sure it is deployed, or check settings (gear icon) to configure URL.';
+            }
+        }
+
+        checkAndAlertBackend();
+
+        // Form Submission Logic
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorAlert = document.getElementById('error-alert');
+            const errorText = document.getElementById('error-text');
+
+            errorAlert.style.display = 'none';
+
+            try {
+                const response = await fetch(`${CONFIG.getApiUrl()}/api/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                if (response.ok && data.status === 'success') {
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    window.location.href = 'upload.html';
+                } else {
+                    errorText.textContent = data.message || 'Login failed. Please try again.';
+                    errorAlert.style.display = 'flex';
+                }
+            } catch (err) {
+                console.error(err);
+                errorText.textContent = 'Unable to connect to the backend server. Please verify your settings or try again.';
+                errorAlert.style.display = 'flex';
+            }
+        });
+    </script>
+</body>
+</html>
