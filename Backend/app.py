@@ -39,28 +39,69 @@ custom_stopwords = [
 tfidf_vectorizer = TfidfVectorizer(sublinear_tf=True, stop_words=custom_stopwords)
 
 app = Flask(__name__, template_folder='../templates')
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5 MB max file size limit
 CORS(app)
+
+# Initialize Flask-Limiter for Brute-force and DDoS security
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+limiter = Limiter(
+    key_func=get_remote_address,
+    app=app,
+    default_limits=["500 per day", "100 per hour"],
+    storage_uri="memory://"
+)
+
+@app.errorhandler(413)
+def request_entity_too_large(error):
+    if request.path.startswith('/api/'):
+        return jsonify({'status': 'error', 'message': 'File size exceeds the maximum 5MB limit.'}), 413
+    return render_template('index_cv.html', error_message="File size exceeds the maximum 5MB limit."), 413
+
 app.config['STATIC_FOLDER'] = 'static'
 user_collection = db['user']
+
+def is_valid_pdf(file_storage):
+    try:
+        # Verify file extension
+        if not file_storage.filename.lower().endswith('.pdf'):
+            return False
+        # Read first 4 bytes to check magic signature
+        header = file_storage.read(4)
+        file_storage.seek(0)  # Reset read pointer
+        return header == b'%PDF'
+    except Exception:
+        return False
 
 @app.route('/')
 def home():
     return render_template('index.html')
 
+@app.route('/api/health')
+def api_health():
+    return jsonify({'status': 'healthy'})
+
+
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("10 per minute")
 def login():
     error_message = None
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
-        user = user_collection.find_one({'email': email})
-        if user and bcrypt.checkpw(password.encode('utf-8'), user['password']):
-            return redirect(url_for('index_cv'))
+        if not email or not password:
+            error_message = "Missing email or password"
         else:
-            error_message = "Incorrect email or password"
+            user = user_collection.find_one({'email': email})
+            if user and bcrypt.checkpw(password.encode('utf-8'), user['password']):
+                return redirect(url_for('index_cv'))
+            else:
+                error_message = "Incorrect email or password"
     return render_template('index.html', error_message=error_message)
 
 @app.route('/signup', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def signup():
     error_message = None
     if request.method == 'POST':
@@ -68,8 +109,10 @@ def signup():
         last_name = request.form.get('nom')
         email = request.form.get('email')
         password = request.form.get('password')
-        existing_user = user_collection.find_one({'email': email})
-        if existing_user:
+        
+        if not email or not password or not first_name or not last_name:
+            error_message = "All fields are required"
+        elif existing_user := user_collection.find_one({'email': email}):
             error_message = "Email already exists"
         else:
             new_user = User(last_name, first_name, email, password)
@@ -92,6 +135,8 @@ def index_cv():
     return render_template('index_cv.html')
 
 def clean_and_preprocess(text):
+    # Sanitize inputs by stripping out potential injection attacks and cleaning text
+    text = re.sub(r'<script.*?>.*?</script>', '', text, flags=re.IGNORECASE)
     text = text.translate(str.maketrans('', '', string.punctuation)).lower()
     text = re.sub(r'\d{10,}', '', text)
     text = re.sub(r'\S+@\S+', '', text)
@@ -99,18 +144,42 @@ def clean_and_preprocess(text):
     filtered_words = [word for word in words if word not in custom_stopwords]
     return ' '.join(filtered_words)
 
+
 @app.route('/process_uploaded_cv', methods=['POST'])
+@limiter.limit("10 per minute")
 def process_uploaded_cv():
     if 'pdfFile' not in request.files or request.files['pdfFile'].filename == '':
-        return "No valid resume file uploaded."
+        return render_template('index_cv.html', error_message="No valid resume file uploaded.")
 
     uploaded_cv = request.files['pdfFile']
-    pdf_reader = PdfReader(uploaded_cv)
-    cv_text = "".join([page.extract_text() for page in pdf_reader.pages if page.extract_text()])
+    
+    # Secure validation of PDF structure and header
+    if not is_valid_pdf(uploaded_cv):
+        return render_template('index_cv.html', error_message="Security Alert: Invalid file type! Please upload a genuine PDF document.")
+
+    # Safe parsing of PDF text contents
+    try:
+        pdf_reader = PdfReader(uploaded_cv)
+        if len(pdf_reader.pages) == 0:
+            return render_template('index_cv.html', error_message="The uploaded PDF file contains no pages.")
+        
+        cv_text = ""
+        for page in pdf_reader.pages:
+            text = page.extract_text()
+            if text:
+                cv_text += text
+        
+        if not cv_text.strip():
+            return render_template('index_cv.html', error_message="Could not extract text. Please ensure the PDF is not scanned/empty.")
+            
+    except Exception as e:
+        print(f"[ERROR] PDF Parsing failed: {e}")
+        return render_template('index_cv.html', error_message="Failed to parse the PDF document. The file may be corrupted or malformed.")
 
     cleaned_cv = clean_and_preprocess(cv_text)
     tfidf_vectorizer.fit(skills)
     tfidf_vector_for_user_cv = tfidf_vectorizer.transform([cleaned_cv])
+
 
     offers_collection = db["offres_emploi"]
     cursor = offers_collection.find({})
@@ -462,6 +531,7 @@ def demo_match():
 # ==========================================
 
 @app.route('/api/login', methods=['POST'])
+@limiter.limit("10 per minute")
 def api_login():
     data = request.get_json(silent=True) or request.form
     email = data.get('email')
@@ -484,6 +554,7 @@ def api_login():
         return jsonify({'status': 'error', 'message': 'Incorrect email or password'}), 401
 
 @app.route('/api/signup', methods=['POST'])
+@limiter.limit("5 per minute")
 def api_signup():
     data = request.get_json(silent=True) or request.form
     first_name = data.get('prenom')
@@ -510,17 +581,40 @@ def api_signup():
     return jsonify({'status': 'success', 'user': {'email': email, 'nom': last_name, 'prenom': first_name}})
 
 @app.route('/api/process_uploaded_cv', methods=['POST'])
+@limiter.limit("10 per minute")
 def api_process_uploaded_cv():
     if 'pdfFile' not in request.files or request.files['pdfFile'].filename == '':
         return jsonify({'status': 'error', 'message': 'No valid resume file uploaded.'}), 400
 
     uploaded_cv = request.files['pdfFile']
-    pdf_reader = PdfReader(uploaded_cv)
-    cv_text = "".join([page.extract_text() for page in pdf_reader.pages if page.extract_text()])
+    
+    # Secure validation of PDF structure and header
+    if not is_valid_pdf(uploaded_cv):
+        return jsonify({'status': 'error', 'message': 'Security Alert: Invalid file type! Please upload a genuine PDF document.'}), 400
+
+    # Safe parsing of PDF text contents
+    try:
+        pdf_reader = PdfReader(uploaded_cv)
+        if len(pdf_reader.pages) == 0:
+            return jsonify({'status': 'error', 'message': 'The uploaded PDF file contains no pages.'}), 400
+        
+        cv_text = ""
+        for page in pdf_reader.pages:
+            text = page.extract_text()
+            if text:
+                cv_text += text
+                
+        if not cv_text.strip():
+            return jsonify({'status': 'error', 'message': 'Could not extract text. Please ensure the PDF is not scanned/empty.'}), 400
+            
+    except Exception as e:
+        print(f"[ERROR] API PDF Parsing failed: {e}")
+        return jsonify({'status': 'error', 'message': 'Failed to parse the PDF document. The file may be corrupted or malformed.'}), 400
 
     cleaned_cv = clean_and_preprocess(cv_text)
     tfidf_vectorizer.fit(skills)
     tfidf_vector_for_user_cv = tfidf_vectorizer.transform([cleaned_cv])
+
 
     offers_collection = db["offres_emploi"]
     cursor = offers_collection.find({})
