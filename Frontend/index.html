@@ -3,7 +3,32 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>CareerMatch AI - Login</title>
+    <meta name="description" content="KiriGen Jobs - AI-Powered Job Recommendation System. Connect your profile, analyze your resume using advanced NLP and machine learning, and match with the top career opportunities.">
+    <meta name="keywords" content="KiriGen Jobs, Job Search, AI Resume Parser, Skill Matcher, TF-IDF Jobs, Natural Language Processing, Career Matching Services">
+    <meta name="author" content="KiriGen Tech">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Google Search Console Verification -->
+    <meta name="google-site-verification" content="GSC_VERIFICATION_TOKEN_PLACEHOLDER">
+    
+    <title>KiriGen Jobs - AI-Powered Job Recommendation Dashboard</title>
+    
+    <!-- Structured Data JSON-LD for Google Search Console & SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "KiriGen Jobs",
+      "alternateName": "KiriGen Job Recommendation Dashboard",
+      "url": "https://www.kirigentech.in/",
+      "description": "AI-powered job matching system featuring TF-IDF parsing and cosine similarity metrics.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://www.kirigentech.in/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
     
     <!-- Premium Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -102,28 +127,28 @@
     </div>
 
     <!-- Navigation Header -->
-    <header class="app-header">
+    <header class="app-header" role="banner">
         <div class="header-container">
-            <a href="index.html" class="brand">
+            <a href="index.html" class="brand" id="brand-home-link">
                 <div class="brand-icon">
                     <i class="fa-solid fa-briefcase"></i>
                 </div>
-                <span>CareerMatch AI</span>
+                <span>KiriGen Jobs</span>
             </a>
             
-            <nav class="nav-links">
-                <a href="index.html" class="nav-link active">Login</a>
-                <a href="signup.html" class="nav-link">Sign Up</a>
+            <nav class="nav-links" role="navigation" aria-label="Main Navigation">
+                <a href="index.html" class="nav-link active" id="nav-login-btn">Login</a>
+                <a href="signup.html" class="nav-link" id="nav-signup-btn">Sign Up</a>
             </nav>
         </div>
     </header>
 
     <!-- Main Content Area -->
-    <main class="app-main-content">
+    <main class="app-main-content" role="main">
         <div class="auth-wrapper">
             <div class="glass-card">
                 <div class="auth-header">
-                    <h2>Welcome Back</h2>
+                    <h2>Welcome to KiriGen Jobs</h2>
                     <p>Access your AI-powered job recommendation dashboard</p>
                 </div>
                 
@@ -134,7 +159,7 @@
                 </div>
                 
                 <!-- Error Alerts -->
-                <div id="error-alert" class="alert-error" style="display: none;">
+                <div id="error-alert" class="alert-error" style="display: none;" aria-live="polite">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                     <span id="error-text">Incorrect email or password</span>
                 </div>
@@ -151,10 +176,10 @@
                     </div>
                     
                     <div class="form-actions-split">
-                        <button type="submit" class="btn-primary-modern">
+                        <button type="submit" class="btn-primary-modern" id="login-submit-btn">
                             <i class="fa-solid fa-right-to-bracket" style="margin-right: 8px;"></i> Login
                         </button>
-                        <a href="signup.html" class="btn-secondary-modern">
+                        <a href="signup.html" class="btn-secondary-modern" id="login-signup-link">
                             <i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i> Sign Up
                         </a>
                     </div>
@@ -168,21 +193,21 @@
     </main>
 
     <!-- Professional Footer -->
-    <footer class="app-footer">
+    <footer class="app-footer" role="contentinfo">
         <div class="container">
-            <p>&copy; 2026 CareerMatch AI. Powered by advanced NLP & Machine Learning.</p>
+            <p>&copy; 2026 KiriGen Jobs. Powered by advanced NLP & Machine Learning. All Rights Reserved.</p>
         </div>
     </footer>
 
     <!-- Settings Gear floating button -->
-    <div class="api-config-trigger" onclick="openSettings()" title="API Endpoint Settings">
+    <div class="api-config-trigger" onclick="openSettings()" title="API Endpoint Settings" role="button" aria-label="Open API settings">
         <i class="fa-solid fa-gear"></i>
     </div>
 
     <!-- API configuration Modal -->
-    <div class="api-modal" id="api-modal">
+    <div class="api-modal" id="api-modal" aria-hidden="true" role="dialog">
         <div class="api-modal-content">
-            <button class="close-modal" onclick="closeSettings()">&times;</button>
+            <button class="close-modal" onclick="closeSettings()" aria-label="Close settings">&times;</button>
             <h3 style="font-weight:900; text-transform:uppercase; margin-bottom:15px;">API Connection Settings</h3>
             <p style="font-size:13px; font-weight:700; color:#4b5563; margin-bottom:15px;">
                 Specify the URL where your Render backend is running.
@@ -218,11 +243,13 @@
         function openSettings() {
             apiUrlInput.value = CONFIG.getApiUrl();
             modal.classList.add('active');
+            modal.setAttribute('aria-hidden', 'false');
             updateBadge();
         }
 
         function closeSettings() {
             modal.classList.remove('active');
+            modal.setAttribute('aria-hidden', 'true');
         }
 
         async function updateBadge() {
@@ -276,6 +303,17 @@
 
         checkAndAlertBackend();
 
+        // Helper to escape output strings to prevent XSS
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
         // Form Submission Logic
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -300,7 +338,7 @@
                     localStorage.setItem('user', JSON.stringify(data.user));
                     window.location.href = 'upload.html';
                 } else {
-                    errorText.textContent = data.message || 'Login failed. Please try again.';
+                    errorText.textContent = escapeHtml(data.message || 'Login failed. Please try again.');
                     errorAlert.style.display = 'flex';
                 }
             } catch (err) {
