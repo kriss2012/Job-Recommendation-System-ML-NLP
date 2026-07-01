@@ -149,7 +149,7 @@ def process_uploaded_cv():
             offer_names.append(name)
 
     # Filter and sort recommendations
-    filtered_recommendations = [job for job in data if job['similarity'] > 0.2]
+    filtered_recommendations = [job for job in data if job['similarity'] > 0.02]
     filtered_recommendations.sort(key=lambda x: x['similarity'], reverse=True)
     
     # Get top 10 for chart
@@ -394,7 +394,7 @@ def demo_match():
             offer_names.append(name)
 
     # Filter and sort recommendations
-    filtered_recommendations = [job for job in data if job['similarity'] > 0.2]
+    filtered_recommendations = [job for job in data if job['similarity'] > 0.02]
     filtered_recommendations.sort(key=lambda x: x['similarity'], reverse=True)
     
     # Get top 10 for chart
