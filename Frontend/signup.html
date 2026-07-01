@@ -3,7 +3,27 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>CareerMatch AI - Sign Up</title>
+    <meta name="description" content="Sign up for KiriGen Jobs and let our advanced NLP job matching system evaluate your resume, compare key skills, and highlight career pathways instantly.">
+    <meta name="keywords" content="KiriGen Jobs Sign Up, Create Account, NLP Job Finder, CV Analysis Registration, Job Recommendations Registration">
+    <meta name="author" content="KiriGen Tech">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Google Search Console Verification -->
+    <meta name="google-site-verification" content="GSC_VERIFICATION_TOKEN_PLACEHOLDER">
+    
+    <title>KiriGen Jobs - Create Account & Analyze Resume</title>
+    
+    <!-- Structured Data JSON-LD for Google Search Console & SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "KiriGen Jobs",
+      "alternateName": "KiriGen Job Recommendation Dashboard",
+      "url": "https://www.kirigentech.in/",
+      "description": "AI-powered job matching system featuring TF-IDF parsing and cosine similarity metrics."
+    }
+    </script>
     
     <!-- Premium Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,33 +46,33 @@
     </div>
 
     <!-- Navigation Header -->
-    <header class="app-header">
+    <header class="app-header" role="banner">
         <div class="header-container">
-            <a href="index.html" class="brand">
+            <a href="index.html" class="brand" id="brand-home-link">
                 <div class="brand-icon">
                     <i class="fa-solid fa-briefcase"></i>
                 </div>
-                <span>CareerMatch AI</span>
+                <span>KiriGen Jobs</span>
             </a>
             
-            <nav class="nav-links">
-                <a href="index.html" class="nav-link">Login</a>
-                <a href="signup.html" class="nav-link active">Sign Up</a>
+            <nav class="nav-links" role="navigation" aria-label="Main Navigation">
+                <a href="index.html" class="nav-link" id="nav-login-btn">Login</a>
+                <a href="signup.html" class="nav-link active" id="nav-signup-btn">Sign Up</a>
             </nav>
         </div>
     </header>
 
     <!-- Main Content Area -->
-    <main class="app-main-content">
+    <main class="app-main-content" role="main">
         <div class="auth-wrapper" style="max-width: 500px;">
             <div class="glass-card">
                 <div class="auth-header">
-                    <h2>Create Account</h2>
+                    <h2>Create KiriGen Account</h2>
                     <p>Sign up to analyze your resume and get immediate job matches</p>
                 </div>
                 
                 <!-- Error Alerts -->
-                <div id="error-alert" class="alert-error" style="display: none;">
+                <div id="error-alert" class="alert-error" style="display: none;" aria-live="polite">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                     <span id="error-text">Email already exists</span>
                 </div>
@@ -80,7 +100,7 @@
                     </div>
                     
                     <div style="margin-top: 10px;">
-                        <button type="submit" class="btn-primary-modern">
+                        <button type="submit" class="btn-primary-modern" id="signup-submit-btn">
                             <i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i> Register & Continue
                         </button>
                     </div>
@@ -94,9 +114,9 @@
     </main>
 
     <!-- Professional Footer -->
-    <footer class="app-footer">
+    <footer class="app-footer" role="contentinfo">
         <div class="container">
-            <p>&copy; 2026 CareerMatch AI. Powered by advanced NLP & Machine Learning.</p>
+            <p>&copy; 2026 KiriGen Jobs. Powered by advanced NLP & Machine Learning. All Rights Reserved.</p>
         </div>
     </footer>
 
@@ -106,6 +126,17 @@
         // Check authentication state on page load
         if (localStorage.getItem('user')) {
             window.location.href = 'upload.html';
+        }
+
+        // Helper to escape output strings to prevent XSS
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
 
         document.getElementById('signup-form').addEventListener('submit', async (e) => {
@@ -133,7 +164,7 @@
                     localStorage.setItem('user', JSON.stringify(data.user));
                     window.location.href = 'upload.html';
                 } else {
-                    errorText.textContent = data.message || 'Signup failed. Please try again.';
+                    errorText.textContent = escapeHtml(data.message || 'Signup failed. Please try again.');
                     errorAlert.style.display = 'flex';
                 }
             } catch (err) {
