@@ -1,10 +1,20 @@
 # 🧠 AI-Powered Job Recommendation System
 
-This project is an intelligent job recommendation web application that matches a user’s uploaded resume with relevant job listings using NLP techniques and cosine similarity. It uses TF-IDF to extract features from job descriptions and the user’s CV and compares them to recommend the most relevant positions.
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/kriss2012/Job-Recommendation-System-ML-NLP)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fkriss2012%2FJob-Recommendation-System-ML-NLP&root-directory=Frontend)
+
+This project is an intelligent job recommendation web application that matches a user’s uploaded resume with relevant job listings using NLP techniques and cosine similarity. 
+
+### 🌐 Split-Architecture Deployment
+
+To optimize reliability and cost, this repository is structured to support a completely split deployment:
+1. **Frontend (Vercel)**: A lightning-fast, high-performance static HTML/CSS/JS client located in the `/Frontend` folder.
+2. **Backend API (Render)**: A python Flask API located in the `/Backend` folder, configured with CORS to allow secure request handling.
 
 ---
 
 ## 🚀 Features
+
 
 - Upload your resume as a PDF
 - Automatic resume parsing with text cleaning
@@ -142,12 +152,25 @@ docker run -p 5002:5002 --env-file .env job-recommendation-system
 
 ---
 
-## 🌐 Deployment
+## 🌐 Deployment & Configuration Guide
 
-You can deploy the app using:
+To deploy this project seamlessly:
 
-* Render / Railway / Heroku (Docker-based)
-* MongoDB Atlas for production DB
+### 1. Backend on Render
+- Simply click the **Deploy to Render** button at the top of this file.
+- Under **Environment Variables**, you can set `MONGO_URI` if you want to use a custom MongoDB Atlas instance. Otherwise, it will automatically connect to a shared Atlas cluster out-of-the-box.
+- Once deployed, copy your Render Web Service URL (e.g., `https://job-rec-backend.onrender.com`).
+- **Seed the Database**: Hit the `/seed` path on your deployed Render service (e.g. `https://job-rec-backend.onrender.com/seed`) to automatically load the initial 12 job offers into MongoDB.
+
+### 2. Frontend on Vercel
+- Click the **Deploy with Vercel** button at the top.
+- Vercel will clone the repo and automatically configure the `/Frontend` directory as the root folder.
+- When the site opens:
+  - Click the **Gear icon** in the bottom-right corner of the Login page.
+  - Paste your Render Backend URL in the input field.
+  - The connection badge will instantly verify health.
+  - Click **Save Settings** – this URL is stored securely in your browser's local storage and used for all requests!
+
 
 ---
 
