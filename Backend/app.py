@@ -1,6 +1,7 @@
 # Translated and unified version of all core logic for the AI-powered Job Recommendation System
 
 from flask import Flask, request, render_template, redirect, url_for, jsonify
+from flask_cors import CORS
 from PyPDF2 import PdfReader
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -38,6 +39,7 @@ custom_stopwords = [
 tfidf_vectorizer = TfidfVectorizer(sublinear_tf=True, stop_words=custom_stopwords)
 
 app = Flask(__name__, template_folder='../templates')
+CORS(app)
 app.config['STATIC_FOLDER'] = 'static'
 user_collection = db['user']
 
@@ -454,6 +456,320 @@ def demo_match():
                          similarity_image='similarite.png', 
                          recommendations=filtered_recommendations,
                          stats=stats)
+
+# ==========================================
+# JSON API ENDPOINTS FOR DEPLOYED FRONTEND
+# ==========================================
+
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    data = request.get_json(silent=True) or request.form
+    email = data.get('email')
+    password = data.get('password')
+    
+    if not email or not password:
+        return jsonify({'status': 'error', 'message': 'Missing email or password'}), 400
+        
+    user = user_collection.find_one({'email': email})
+    if user and bcrypt.checkpw(password.encode('utf-8'), user['password']):
+        return jsonify({
+            'status': 'success',
+            'user': {
+                'email': email,
+                'nom': user.get('nom', ''),
+                'prenom': user.get('prenom', '')
+            }
+        })
+    else:
+        return jsonify({'status': 'error', 'message': 'Incorrect email or password'}), 401
+
+@app.route('/api/signup', methods=['POST'])
+def api_signup():
+    data = request.get_json(silent=True) or request.form
+    first_name = data.get('prenom')
+    last_name = data.get('nom')
+    email = data.get('email')
+    password = data.get('password')
+    
+    if not email or not password or not first_name or not last_name:
+        return jsonify({'status': 'error', 'message': 'Missing required fields'}), 400
+        
+    existing_user = user_collection.find_one({'email': email})
+    if existing_user:
+        return jsonify({'status': 'error', 'message': 'Email already exists'}), 400
+        
+    new_user = User(last_name, first_name, email, password)
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    user_collection.insert_one({
+        'nom': new_user.nom,
+        'prenom': new_user.prenom,
+        'email': new_user.email,
+        'password': hashed_password
+    })
+    
+    return jsonify({'status': 'success', 'user': {'email': email, 'nom': last_name, 'prenom': first_name}})
+
+@app.route('/api/process_uploaded_cv', methods=['POST'])
+def api_process_uploaded_cv():
+    if 'pdfFile' not in request.files or request.files['pdfFile'].filename == '':
+        return jsonify({'status': 'error', 'message': 'No valid resume file uploaded.'}), 400
+
+    uploaded_cv = request.files['pdfFile']
+    pdf_reader = PdfReader(uploaded_cv)
+    cv_text = "".join([page.extract_text() for page in pdf_reader.pages if page.extract_text()])
+
+    cleaned_cv = clean_and_preprocess(cv_text)
+    tfidf_vectorizer.fit(skills)
+    tfidf_vector_for_user_cv = tfidf_vectorizer.transform([cleaned_cv])
+
+    offers_collection = db["offres_emploi"]
+    cursor = offers_collection.find({})
+
+    similarities = []
+    offer_names = []
+    data = []
+
+    for doc in cursor:
+        name = doc.get('name', 'Job Offer')
+        combined_text = doc.get('combined_text', '')
+        link = doc.get('lien', '#')
+        description = doc.get('description', combined_text[:200] + '...' if len(combined_text) > 200 else combined_text)
+        location = doc.get('location', 'Not specified')
+        job_type = doc.get('job_type', 'Not specified')
+        salary = doc.get('salary', 'Not specified')
+        company = doc.get('company', 'Not specified')
+        
+        job_offer = OffreEmploi(name, combined_text, link)
+
+        cleaned_offer_text = clean_and_preprocess(job_offer.combined_text)
+        tfidf_vector_for_offer = tfidf_vectorizer.transform([cleaned_offer_text])
+        similarity_score = cosine_similarity(tfidf_vector_for_user_cv, tfidf_vector_for_offer)
+
+        if similarity_score is not None:
+            similarity_score = float(similarity_score[0][0])
+            data.append({
+                'name': name,
+                'link': link,
+                'description': description,
+                'location': location,
+                'job_type': job_type,
+                'salary': salary,
+                'company': company,
+                'similarity': similarity_score
+            })
+            similarities.append(similarity_score)
+            offer_names.append(name)
+
+    # Filter and sort recommendations
+    filtered_recommendations = [job for job in data if job['similarity'] > 0.02]
+    filtered_recommendations.sort(key=lambda x: x['similarity'], reverse=True)
+    
+    # Get top 10 for chart
+    top_jobs = filtered_recommendations[:10] if filtered_recommendations else data[:10]
+    top_names = [job['name'] for job in top_jobs]
+    top_scores = [job['similarity'] for job in top_jobs]
+
+    # Create enhanced visualization (Neo-Brutalist Styled)
+    fig, ax = plt.subplots(figsize=(14, 7), facecolor='#ffffff')
+    ax.set_facecolor('#ffffff')
+    
+    # Border & grid styling (brutalist heavy borders)
+    for spine in ['bottom', 'left', 'top', 'right']:
+        ax.spines[spine].set_color('#000000')
+        ax.spines[spine].set_linewidth(3)
+        
+    ax.tick_params(colors='#000000', labelsize=10, width=3)
+    
+    # Set labels
+    ax.set_xlabel('Similarity Score', fontsize=12, fontweight='bold', color='#000000', labelpad=10)
+    ax.set_title("Resume Match Similarity Analysis", fontsize=14, fontweight='black', color='#000000', pad=15)
+    ax.set_xlim(0, 1)
+    
+    # Create horizontal bars (Yellow bars with thick black border)
+    bars = ax.barh(top_names, top_scores, color='#ffe600', edgecolor='#000000', linewidth=2.5, height=0.6)
+    
+    # Threshold lines
+    ax.axvline(x=0.7, color='#4ade80', linestyle='--', linewidth=2.5, label='High Match Threshold (0.7)')
+    ax.axvline(x=0.4, color='#facc15', linestyle='--', linewidth=2.5, label='Medium Match Threshold (0.4)')
+    
+    # Legend customization
+    legend = ax.legend(loc='lower right', facecolor='#ffffff', edgecolor='#000000')
+    legend.get_frame().set_linewidth(2.5)
+    for text in legend.get_texts():
+        text.set_color('#000000')
+        text.set_fontweight('bold')
+        text.set_fontsize(10)
+        
+    # Score labels on bars
+    for bar, score in zip(bars, top_scores):
+        ax.text(score + 0.02, bar.get_y() + bar.get_height()/2, f'{score:.1%}', 
+                va='center', fontweight='bold', color='#000000', fontsize=10)
+        
+    plt.tight_layout()
+    
+    # Save base64 image
+    import io
+    import base64
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', dpi=100, bbox_inches='tight')
+    buf.seek(0)
+    chart_base64 = base64.b64encode(buf.read()).decode('utf-8')
+    
+    # Save local file backup
+    try:
+        chart_path = os.path.join(os.path.dirname(__file__), 'static', 'similarite.png')
+        with open(chart_path, 'wb') as f:
+            f.write(buf.getvalue())
+    except Exception as e:
+        print(f"[WARN] Could not write chart file to disk: {e}")
+        
+    plt.close()
+
+    stats = {
+        'total_jobs': len(data),
+        'matched_jobs': len(filtered_recommendations),
+        'avg_similarity': float(sum(job['similarity'] for job in data) / len(data)) if data else 0,
+        'top_score': float(max([job['similarity'] for job in data])) if data else 0
+    }
+
+    return jsonify({
+        'status': 'success',
+        'recommendations': filtered_recommendations,
+        'stats': stats,
+        'chart_base64': chart_base64
+    })
+
+@app.route('/api/demo_match', methods=['GET', 'POST'])
+def api_demo_match():
+    pdf_path = os.path.join(os.path.dirname(__file__), '..', 'CV', 'CV1.pdf')
+    if not os.path.exists(pdf_path):
+        pdf_path = os.path.join(os.path.dirname(__file__), 'CV', 'CV1.pdf')
+        if not os.path.exists(pdf_path):
+            return jsonify({'status': 'error', 'message': f'Demo resume not found at {pdf_path}.'}), 404
+        
+    pdf_reader = PdfReader(pdf_path)
+    cv_text = "".join([page.extract_text() for page in pdf_reader.pages if page.extract_text()])
+
+    cleaned_cv = clean_and_preprocess(cv_text)
+    tfidf_vectorizer.fit(skills)
+    tfidf_vector_for_user_cv = tfidf_vectorizer.transform([cleaned_cv])
+
+    offers_collection = db["offres_emploi"]
+    cursor = offers_collection.find({})
+
+    similarities = []
+    offer_names = []
+    data = []
+
+    for doc in cursor:
+        name = doc.get('name', 'Job Offer')
+        combined_text = doc.get('combined_text', '')
+        link = doc.get('lien', '#')
+        description = doc.get('description', combined_text[:200] + '...' if len(combined_text) > 200 else combined_text)
+        location = doc.get('location', 'Not specified')
+        job_type = doc.get('job_type', 'Not specified')
+        salary = doc.get('salary', 'Not specified')
+        company = doc.get('company', 'Not specified')
+        
+        job_offer = OffreEmploi(name, combined_text, link)
+
+        cleaned_offer_text = clean_and_preprocess(job_offer.combined_text)
+        tfidf_vector_for_offer = tfidf_vectorizer.transform([cleaned_offer_text])
+        similarity_score = cosine_similarity(tfidf_vector_for_user_cv, tfidf_vector_for_offer)
+
+        if similarity_score is not None:
+            similarity_score = float(similarity_score[0][0])
+            data.append({
+                'name': name,
+                'link': link,
+                'description': description,
+                'location': location,
+                'job_type': job_type,
+                'salary': salary,
+                'company': company,
+                'similarity': similarity_score
+            })
+            similarities.append(similarity_score)
+            offer_names.append(name)
+
+    # Filter and sort recommendations
+    filtered_recommendations = [job for job in data if job['similarity'] > 0.02]
+    filtered_recommendations.sort(key=lambda x: x['similarity'], reverse=True)
+    
+    # Get top 10 for chart
+    top_jobs = filtered_recommendations[:10] if filtered_recommendations else data[:10]
+    top_names = [job['name'] for job in top_jobs]
+    top_scores = [job['similarity'] for job in top_jobs]
+
+    # Create enhanced visualization (Neo-Brutalist Styled)
+    fig, ax = plt.subplots(figsize=(14, 7), facecolor='#ffffff')
+    ax.set_facecolor('#ffffff')
+    
+    # Border & grid styling (brutalist heavy borders)
+    for spine in ['bottom', 'left', 'top', 'right']:
+        ax.spines[spine].set_color('#000000')
+        ax.spines[spine].set_linewidth(3)
+        
+    ax.tick_params(colors='#000000', labelsize=10, width=3)
+    
+    # Set labels
+    ax.set_xlabel('Similarity Score', fontsize=12, fontweight='bold', color='#000000', labelpad=10)
+    ax.set_title("Resume Match Similarity Analysis", fontsize=14, fontweight='black', color='#000000', pad=15)
+    ax.set_xlim(0, 1)
+    
+    # Create horizontal bars (Yellow bars with thick black border)
+    bars = ax.barh(top_names, top_scores, color='#ffe600', edgecolor='#000000', linewidth=2.5, height=0.6)
+    
+    # Threshold lines
+    ax.axvline(x=0.7, color='#4ade80', linestyle='--', linewidth=2.5, label='High Match Threshold (0.7)')
+    ax.axvline(x=0.4, color='#facc15', linestyle='--', linewidth=2.5, label='Medium Match Threshold (0.4)')
+    
+    # Legend customization
+    legend = ax.legend(loc='lower right', facecolor='#ffffff', edgecolor='#000000')
+    legend.get_frame().set_linewidth(2.5)
+    for text in legend.get_texts():
+        text.set_color('#000000')
+        text.set_fontweight('bold')
+        text.set_fontsize(10)
+        
+    # Score labels on bars
+    for bar, score in zip(bars, top_scores):
+        ax.text(score + 0.02, bar.get_y() + bar.get_height()/2, f'{score:.1%}', 
+                va='center', fontweight='bold', color='#000000', fontsize=10)
+        
+    plt.tight_layout()
+    
+    # Save base64 image
+    import io
+    import base64
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', dpi=100, bbox_inches='tight')
+    buf.seek(0)
+    chart_base64 = base64.b64encode(buf.read()).decode('utf-8')
+    
+    # Save local file backup
+    try:
+        chart_path = os.path.join(os.path.dirname(__file__), 'static', 'similarite.png')
+        with open(chart_path, 'wb') as f:
+            f.write(buf.getvalue())
+    except Exception as e:
+        print(f"[WARN] Could not write chart file to disk: {e}")
+        
+    plt.close()
+
+    stats = {
+        'total_jobs': len(data),
+        'matched_jobs': len(filtered_recommendations),
+        'avg_similarity': float(sum(job['similarity'] for job in data) / len(data)) if data else 0,
+        'top_score': float(max([job['similarity'] for job in data])) if data else 0
+    }
+
+    return jsonify({
+        'status': 'success',
+        'recommendations': filtered_recommendations,
+        'stats': stats,
+        'chart_base64': chart_base64
+    })
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5002))
