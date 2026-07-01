@@ -3,7 +3,27 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>CareerMatch AI - Upload Resume</title>
+    <meta name="description" content="Upload your PDF resume to KiriGen Jobs. Our AI parsing model will automatically extract your professional skills and compare similarity metrics against open listings.">
+    <meta name="keywords" content="KiriGen Resume Parser, Upload CV AI, Job Skill Comparison, PDF Resume Matcher, NLP Skill Matrix">
+    <meta name="author" content="KiriGen Tech">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Google Search Console Verification -->
+    <meta name="google-site-verification" content="GSC_VERIFICATION_TOKEN_PLACEHOLDER">
+    
+    <title>KiriGen Jobs - Upload Resume & Skills Processing</title>
+    
+    <!-- Structured Data JSON-LD for Google Search Console & SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "KiriGen Jobs",
+      "alternateName": "KiriGen Job Recommendation Dashboard",
+      "url": "https://www.kirigentech.in/",
+      "description": "AI-powered job matching system featuring TF-IDF parsing and cosine similarity metrics."
+    }
+    </script>
     
     <!-- Premium Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,17 +46,17 @@
     </div>
 
     <!-- Navigation Header -->
-    <header class="app-header">
+    <header class="app-header" role="banner">
         <div class="header-container">
-            <a href="index.html" class="brand">
+            <a href="index.html" class="brand" id="brand-home-link">
                 <div class="brand-icon">
                     <i class="fa-solid fa-briefcase"></i>
                 </div>
-                <span>CareerMatch AI</span>
+                <span>KiriGen Jobs</span>
             </a>
             
-            <nav class="nav-links">
-                <a href="upload.html" class="nav-link active">
+            <nav class="nav-links" role="navigation" aria-label="Main Navigation">
+                <a href="upload.html" class="nav-link active" id="nav-upload-link">
                     <i class="fa-solid fa-cloud-arrow-up"></i> Upload Resume
                 </a>
                 <a href="#" class="nav-link" id="demo-match-nav">
@@ -50,7 +70,7 @@
     </header>
 
     <!-- Main Content Area -->
-    <main class="app-main-content">
+    <main class="app-main-content" role="main">
         <div class="upload-container">
             <div class="section-header">
                 <h1>Upload Your Resume</h1>
@@ -59,7 +79,7 @@
             
             <div class="glass-card">
                 <!-- Error Alerts -->
-                <div id="error-alert" class="alert-error" style="display: none;">
+                <div id="error-alert" class="alert-error" style="display: none;" aria-live="polite">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                     <span id="error-text">Failed to upload resume.</span>
                 </div>
@@ -104,14 +124,14 @@
     </main>
 
     <!-- Professional Footer -->
-    <footer class="app-footer">
+    <footer class="app-footer" role="contentinfo">
         <div class="container">
-            <p>&copy; 2026 CareerMatch AI. Powered by advanced NLP & Machine Learning.</p>
+            <p>&copy; 2026 KiriGen Jobs. Powered by advanced NLP & Machine Learning. All Rights Reserved.</p>
         </div>
     </footer>
 
     <!-- Loading Overlay for Resume processing -->
-    <div class="loading-overlay" id="loading-overlay">
+    <div class="loading-overlay" id="loading-overlay" aria-live="assertive" aria-hidden="true">
         <div class="spinner"></div>
         <div class="loading-text" id="loading-text">Analyzing Resume & Mapping Skills...</div>
         <p style="color: #4b5563; max-width: 300px; text-align: center; font-size: 14px; font-weight:700;">
@@ -137,14 +157,29 @@
 
         // Loading Screen
         function showLoading(text) {
+            const overlay = document.getElementById('loading-overlay');
             if (text) {
                 document.getElementById('loading-text').textContent = text;
             }
-            document.getElementById('loading-overlay').classList.add('active');
+            overlay.classList.add('active');
+            overlay.setAttribute('aria-hidden', 'false');
         }
 
         function hideLoading() {
-            document.getElementById('loading-overlay').classList.remove('active');
+            const overlay = document.getElementById('loading-overlay');
+            overlay.classList.remove('active');
+            overlay.setAttribute('aria-hidden', 'true');
+        }
+
+        // Helper to escape output strings to prevent XSS
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
 
         // Demo match action
@@ -170,7 +205,7 @@
                     window.location.href = 'results.html';
                 } else {
                     hideLoading();
-                    document.getElementById('error-text').textContent = data.message || 'Demo match failed. Make sure database is seeded.';
+                    document.getElementById('error-text').textContent = escapeHtml(data.message || 'Demo match failed. Make sure database is seeded.');
                     errorAlert.style.display = 'flex';
                 }
             } catch (err) {
@@ -227,13 +262,22 @@
         });
 
         function updateFileDetails(file) {
-            if (file.type !== "application/pdf") {
-                alert("Please upload a PDF file only.");
+            // Extension and mime-type security check
+            if (!file.name.toLowerCase().endsWith('.pdf') && file.type !== "application/pdf") {
+                alert("Security Warning: Please upload a PDF file only.");
                 clearFileSelection();
                 return;
             }
             
-            fileNameDisplay.textContent = file.name;
+            // Client-side file size limitation (5MB)
+            const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+            if (file.size > MAX_SIZE) {
+                alert("Security Warning: File exceeds the maximum 5MB size limit. Please upload a smaller resume.");
+                clearFileSelection();
+                return;
+            }
+            
+            fileNameDisplay.textContent = escapeHtml(file.name);
             
             let sizeStr = "";
             if (file.size < 1024 * 1024) {
@@ -289,7 +333,7 @@
                     window.location.href = 'results.html';
                 } else {
                     hideLoading();
-                    document.getElementById('error-text').textContent = data.message || 'Analysis failed. Please try again.';
+                    document.getElementById('error-text').textContent = escapeHtml(data.message || 'Analysis failed. Please try again.');
                     errorAlert.style.display = 'flex';
                 }
             } catch (err) {
