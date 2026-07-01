@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>CareerMatch AI - Match Results</title>
+    
+    <!-- Premium Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Core Custom Stylesheet -->
+    <link rel="stylesheet" href="css/modern.css">
+</head>
+<body>
+
+    <!-- Ambient background gradient orbs -->
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Navigation Header -->
+    <header class="app-header">
+        <div class="header-container">
+            <a href="index.html" class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-briefcase"></i>
+                </div>
+                <span>CareerMatch AI</span>
+            </a>
+            
+            <nav class="nav-links">
+                <a href="upload.html" class="nav-link">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload Resume
+                </a>
+                <a href="#" class="nav-link" id="demo-match-nav">
+                    <i class="fa-solid fa-play"></i> Demo Match
+                </a>
+                <a href="#" class="btn-logout" id="logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="app-main-content">
+        <div style="margin-bottom: 40px;">
+            <div style="text-align: center; margin-bottom: 40px;">
+                <h1 style="font-size: 38px; font-weight: 900; text-transform: uppercase; color: var(--dark); margin-bottom: 12px; display: inline-block; background-color: var(--yellow); padding: 6px 20px; border: var(--border-thick); box-shadow: var(--shadow-flat-sm);">
+                    🎯 Your AI Job Matches
+                </h1>
+                <p style="color: #4b5563; font-size: 16px; font-weight: 700; max-width: 600px; margin: 12px auto 0;">
+                    We've analyzed your resume and calculated compatibility scores across available career opportunities.
+                </p>
+            </div>
+
+            <!-- Statistics Grid -->
+            <div class="dashboard-grid">
+                <div class="stat-card-modern stat-total">
+                    <div class="stat-card-header">
+                        <span class="stat-card-title">Database Jobs</span>
+                        <div class="stat-card-icon"><i class="fa-solid fa-database"></i></div>
+                    </div>
+                    <div class="stat-card-value" id="stat-total-val">0</div>
+                </div>
+                <div class="stat-card-modern stat-matched">
+                    <div class="stat-card-header">
+                        <span class="stat-card-title">Matched Jobs</span>
+                        <div class="stat-card-icon"><i class="fa-solid fa-circle-check"></i></div>
+                    </div>
+                    <div class="stat-card-value" id="stats-matched-count">0</div>
+                </div>
+                <div class="stat-card-modern stat-avg">
+                    <div class="stat-card-header">
+                        <span class="stat-card-title">Avg Compatibility</span>
+                        <div class="stat-card-icon"><i class="fa-solid fa-chart-line"></i></div>
+                    </div>
+                    <div class="stat-card-value" id="stat-avg-val">0%</div>
+                </div>
+                <div class="stat-card-modern stat-best">
+                    <div class="stat-card-header">
+                        <span class="stat-card-title">Highest Match</span>
+                        <div class="stat-card-icon"><i class="fa-solid fa-trophy"></i></div>
+                    </div>
+                    <div class="stat-card-value" id="stat-best-val">0%</div>
+                </div>
+            </div>
+
+            <!-- Dashboard Layout -->
+            <div class="dashboard-layout">
+                
+                <!-- Left Side: Interactive Filters & Chart Analytics -->
+                <div style="display: flex; flex-direction: column; gap: 30px;">
+                    
+                    <!-- Filters Card -->
+                    <div class="glass-card filters-card">
+                        <h3 style="font-size: 18px; font-weight: 900; text-transform: uppercase; margin-bottom: 20px; color: var(--dark); display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-sliders" style="color: var(--dark)"></i> Search & Filter
+                        </h3>
+                        
+                        <div class="filter-row">
+                            <!-- Search Input -->
+                            <div class="filter-control">
+                                <label for="search-input">Search Title, Company or Location</label>
+                                <div style="position: relative;">
+                                    <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted)"></i>
+                                    <input type="text" id="search-input" class="form-control-modern" placeholder="e.g. Software Engineer, London..." style="padding-left: 42px;">
+                                </div>
+                            </div>
+                            
+                            <!-- Range Slider for Match threshold -->
+                            <div class="filter-control">
+                                <label>Minimum Match Score</label>
+                                <div class="slider-container">
+                                    <input type="range" id="threshold-slider" class="range-slider" min="0" max="100" value="5">
+                                    <span class="slider-val" id="threshold-val">5%</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Job Type Chips -->
+                            <div class="filter-control">
+                                <label>Filter by Job Type</label>
+                                <div class="chips-group" id="type-chips">
+                                    <button type="button" class="chip active" data-type="all">All Types</button>
+                                    <button type="button" class="chip" data-type="full-time">Full-time</button>
+                                    <button type="button" class="chip" data-type="part-time">Part-time</button>
+                                    <button type="button" class="chip" data-type="remote">Remote</button>
+                                    <button type="button" class="chip" data-type="contract">Contract</button>
+                                    <button type="button" class="chip" data-type="internship">Internship</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Analytics Chart Card -->
+                    <div class="glass-card chart-card">
+                        <h3 style="font-size: 18px; font-weight: 900; text-transform: uppercase; color: var(--dark); display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-chart-column" style="color: var(--dark)"></i> Match Analysis Chart
+                        </h3>
+                        <p style="color: #4b5563; font-size: 13px; font-weight: 600; margin-top: 4px;">
+                            Visualization of the top 10 recommended job positions mapping your profile
+                        </p>
+                        <div class="chart-wrapper">
+                            <img id="chart-img" src="" alt="Similarity Chart">
+                        </div>
+                    </div>
+                    
+                </div>
+                
+                <!-- Right Side: Job Matches Listings -->
+                <div class="jobs-section" style="margin-top: 0;">
+                    <div class="jobs-header">
+                        <h2>Recommended Positions</h2>
+                        <div class="jobs-count" id="jobs-count-text">
+                            Showing <strong>0</strong> matching job(s)
+                        </div>
+                    </div>
+                    
+                    <div class="jobs-grid" id="jobs-grid">
+                        <!-- Filled dynamically by JavaScript -->
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </main>
+
+    <!-- Professional Footer -->
+    <footer class="app-footer">
+        <div class="container">
+            <p>&copy; 2026 CareerMatch AI. Powered by advanced NLP & Machine Learning.</p>
+        </div>
+    </footer>
+
+    <!-- Loading Overlay for Resume processing -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loading-text">Analyzing Resume & Mapping Skills...</div>
+        <p style="color: #4b5563; max-width: 300px; text-align: center; font-size: 14px; font-weight:700;">
+            Our AI is parsing your PDF, extracting key skills, and matching them against active job listings. This will only take a moment.
+        </p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script>
+        // Check authentication state on page load
+        if (!localStorage.getItem('user')) {
+            window.location.href = 'index.html';
+        }
+
+        // Get saved data from sessionStorage
+        const storedResults = sessionStorage.getItem('last_results');
+        if (!storedResults) {
+            window.location.href = 'upload.html';
+        }
+
+        const results = JSON.parse(storedResults);
+
+        // Populate stats
+        document.getElementById('stat-total-val').textContent = results.stats.total_jobs;
+        document.getElementById('stats-matched-count').textContent = results.stats.matched_jobs;
+        document.getElementById('stat-avg-val').textContent = (results.stats.avg_similarity * 100).toFixed(1) + '%';
+        document.getElementById('stat-best-val').textContent = (results.stats.top_score * 100).toFixed(1) + '%';
+
+        // Populate chart image
+        if (results.chart_base64) {
+            document.getElementById('chart-img').src = `data:image/png;base64,${results.chart_base64}`;
+        } else {
+            document.getElementById('chart-img').src = 'images/similarite.png'; // Fallback
+        }
+
+        // Helper to escape HTML tags
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Expandable job description toggle
+        function toggleDescription(descId, button) {
+            const descEl = document.getElementById(descId);
+            if (descEl.classList.contains('expanded')) {
+                descEl.classList.remove('expanded');
+                button.innerHTML = '<i class="fa-solid fa-angle-down"></i> Read More';
+            } else {
+                descEl.classList.add('expanded');
+                button.innerHTML = '<i class="fa-solid fa-angle-up"></i> Read Less';
+            }
+        }
+
+        // Render recommendation cards
+        const grid = document.getElementById('jobs-grid');
+        const recommendations = results.recommendations || [];
+
+        function renderJobCards() {
+            grid.innerHTML = '';
+            
+            if (recommendations.length === 0) {
+                grid.innerHTML = `
+                    <div class="glass-card no-results-card">
+                        <div class="no-results-icon">
+                            <i class="fa-solid fa-file-excel"></i>
+                        </div>
+                        <h3>No Job Offers Found</h3>
+                        <p>We couldn't match any jobs with score above the threshold. Try uploading a different resume or check back later.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            recommendations.forEach((job, idx) => {
+                const similarityPct = (job.similarity * 100).toFixed(1);
+                const matchClass = job.similarity > 0.7 ? 'match-high' : job.similarity > 0.4 ? 'match-medium' : 'match-low';
+                const rankLabel = job.similarity > 0.7 ? 'Excellent' : job.similarity > 0.4 ? 'Good' : 'Fair';
+                
+                const cardHtml = `
+                    <div class="job-card-modern ${matchClass}" 
+                         data-similarity="${job.similarity}"
+                         data-title="${escapeHtml(job.name.toLowerCase())}"
+                         data-company="${escapeHtml(job.company.toLowerCase())}"
+                         data-location="${escapeHtml(job.location.toLowerCase())}"
+                         data-type="${escapeHtml(job.job_type.toLowerCase())}">
+                        
+                        <div>
+                            <div class="job-card-top">
+                                <h3 class="job-card-title">${escapeHtml(job.name)}</h3>
+                                <span class="match-badge">
+                                    ${similarityPct}% Match
+                                </span>
+                            </div>
+
+                            <div class="job-card-company">
+                                <i class="fa-regular fa-building"></i> ${escapeHtml(job.company)}
+                            </div>
+
+                            <div class="job-card-tags">
+                                <span class="job-card-tag">
+                                    <i class="fa-solid fa-location-dot"></i> ${escapeHtml(job.location)}
+                                </span>
+                                <span class="job-card-tag">
+                                    <i class="fa-solid fa-briefcase"></i> ${escapeHtml(job.job_type)}
+                                </span>
+                                ${job.salary !== 'Not specified' ? `
+                                <span class="job-card-tag" style="background-color: #f0fdf4;">
+                                    <i class="fa-solid fa-coins"></i> ${escapeHtml(job.salary)}
+                                </span>
+                                ` : ''}
+                            </div>
+
+                            <div class="job-card-progress">
+                                <div class="job-card-progress-fill" style="width: ${similarityPct}%"></div>
+                            </div>
+
+                            <div class="job-card-desc" id="desc-${idx}">
+                                ${escapeHtml(job.description)}
+                            </div>
+                            <button type="button" class="btn-apply" style="padding: 4px 10px; font-size: 11px; margin-bottom: 20px; border-radius: 4px;" onclick="toggleDescription('desc-${idx}', this)">
+                                <i class="fa-solid fa-angle-down"></i> Read More
+                            </button>
+                        </div>
+
+                        <div class="job-card-bottom">
+                            <span class="job-card-match-label">
+                                Match Rank: 
+                                <strong>${rankLabel}</strong>
+                            </span>
+                            <a href="${escapeHtml(job.link)}" target="_blank" class="btn-apply">
+                                Apply Now <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                        </div>
+                    </div>
+                `;
+                grid.insertAdjacentHTML('beforeend', cardHtml);
+            });
+
+            // Dynamic Fallback Card if filtering removes all matches
+            const fallbackHtml = `
+                <div class="glass-card no-results-card" id="no-results-card" style="display: none;">
+                    <div class="no-results-icon">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <h3>No matching jobs found</h3>
+                    <p>Adjust your search query or lower your minimum match score filter to see more options.</p>
+                </div>
+            `;
+            grid.insertAdjacentHTML('beforeend', fallbackHtml);
+        }
+
+        renderJobCards();
+
+        // Logout action
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('user');
+            sessionStorage.removeItem('last_results');
+            window.location.href = 'index.html';
+        });
+
+        // Loading Screen functions
+        function showLoading(text) {
+            if (text) {
+                document.getElementById('loading-text').textContent = text;
+            }
+            document.getElementById('loading-overlay').classList.add('active');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').classList.remove('active');
+        }
+
+        // Demo match action
+        document.getElementById('demo-match-nav').addEventListener('click', async (e) => {
+            e.preventDefault();
+            showLoading("Running Demo CV Match Analysis...");
+
+            try {
+                const response = await fetch(`${CONFIG.getApiUrl()}/api/demo_match`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+                if (response.ok && data.status === 'success') {
+                    // Update sessionStorage and reload page to refresh data
+                    sessionStorage.setItem('last_results', JSON.stringify({
+                        recommendations: data.recommendations,
+                        stats: data.stats,
+                        chart_base64: data.chart_base64
+                    }));
+                    window.location.reload();
+                } else {
+                    hideLoading();
+                    alert(data.message || 'Demo match failed. Make sure database is seeded.');
+                }
+            } catch (err) {
+                console.error(err);
+                hideLoading();
+                alert('Unable to connect to the backend server. Please verify your settings.');
+            }
+        });
+
+        // Dynamic Search & Filtering System
+        const searchInput = document.getElementById('search-input');
+        const slider = document.getElementById('threshold-slider');
+        const sliderVal = document.getElementById('threshold-val');
+        const chipsGroup = document.getElementById('type-chips');
+        const countText = document.getElementById('jobs-count-text');
+        
+        let currentFilters = {
+            search: '',
+            threshold: 0.05,
+            jobType: 'all'
+        };
+
+        // Slider listener
+        slider.addEventListener('input', function() {
+            const val = parseInt(this.value);
+            sliderVal.textContent = val + '%';
+            currentFilters.threshold = val / 100;
+            applyFilters();
+        });
+
+        // Search input listener
+        searchInput.addEventListener('input', function() {
+            currentFilters.search = this.value.toLowerCase().trim();
+            applyFilters();
+        });
+
+        // Job type chips listener
+        chipsGroup.addEventListener('click', function(e) {
+            if (e.target.classList.contains('chip')) {
+                chipsGroup.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilters.jobType = e.target.getAttribute('data-type');
+                applyFilters();
+            }
+        });
+
+        function applyFilters() {
+            const jobCards = document.querySelectorAll('.job-card-modern');
+            const noResults = document.getElementById('no-results-card');
+            const matchedCountKPI = document.getElementById('stats-matched-count');
+            let visibleCount = 0;
+
+            jobCards.forEach(card => {
+                const similarity = parseFloat(card.getAttribute('data-similarity'));
+                const title = card.getAttribute('data-title');
+                const company = card.getAttribute('data-company');
+                const location = card.getAttribute('data-location');
+                const jobType = card.getAttribute('data-type');
+                
+                const matchesThreshold = similarity >= currentFilters.threshold;
+                const matchesSearch = currentFilters.search === '' || 
+                                      title.includes(currentFilters.search) || 
+                                      company.includes(currentFilters.search) || 
+                                      location.includes(currentFilters.search);
+                const matchesType = currentFilters.jobType === 'all' || 
+                                    jobType === currentFilters.jobType || 
+                                    jobType.includes(currentFilters.jobType);
+                
+                if (matchesThreshold && matchesSearch && matchesType) {
+                    card.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            if (noResults) {
+                noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+            }
+            
+            countText.innerHTML = `Showing <strong>${visibleCount}</strong> matching job(s)`;
+            
+            if (matchedCountKPI) {
+                matchedCountKPI.textContent = visibleCount;
+            }
+        }
+
+        // Run initial filters sync
+        applyFilters();
+    </script>
+</body>
+</html>
