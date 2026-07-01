@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>CareerMatch AI - Upload Resume</title>
+    
+    <!-- Premium Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Core Custom Stylesheet -->
+    <link rel="stylesheet" href="css/modern.css">
+</head>
+<body>
+
+    <!-- Ambient background gradient orbs -->
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Navigation Header -->
+    <header class="app-header">
+        <div class="header-container">
+            <a href="index.html" class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-briefcase"></i>
+                </div>
+                <span>CareerMatch AI</span>
+            </a>
+            
+            <nav class="nav-links">
+                <a href="upload.html" class="nav-link active">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload Resume
+                </a>
+                <a href="#" class="nav-link" id="demo-match-nav">
+                    <i class="fa-solid fa-play"></i> Demo Match
+                </a>
+                <a href="#" class="btn-logout" id="logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="app-main-content">
+        <div class="upload-container">
+            <div class="section-header">
+                <h1>Upload Your Resume</h1>
+                <p>Upload your PDF resume to let our AI match your skills with the best job opportunities</p>
+            </div>
+            
+            <div class="glass-card">
+                <!-- Error Alerts -->
+                <div id="error-alert" class="alert-error" style="display: none;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span id="error-text">Failed to upload resume.</span>
+                </div>
+
+                <form id="cv-upload-form">
+                    <div class="drop-zone" id="drop-zone">
+                        <div class="drop-zone-icon">
+                            <i class="fa-solid fa-file-pdf"></i>
+                        </div>
+                        <div class="drop-zone-text">
+                            <h3>Drag & Drop your Resume here</h3>
+                            <p>Supported format: PDF only (Max 5MB)</p>
+                        </div>
+                        <button type="button" class="btn-secondary-modern" style="width: auto; padding: 8px 20px;" onclick="document.getElementById('file-input').click()">
+                            Browse Files
+                        </button>
+                        <input type="file" name="pdfFile" id="file-input" accept=".pdf" required>
+                    </div>
+                    
+                    <!-- File details pill shown after selecting a file -->
+                    <div class="file-details" id="file-details">
+                        <div class="drop-zone-icon" style="width: 40px; height: 40px; font-size: 16px; margin-bottom: 0;">
+                            <i class="fa-solid fa-circle-check" style="color: var(--success)"></i>
+                        </div>
+                        <div class="file-info">
+                            <div class="file-name" id="file-name">filename.pdf</div>
+                            <div class="file-size" id="file-size">0 KB</div>
+                        </div>
+                        <button type="button" class="btn-logout" style="padding: 6px 12px; font-size: 12px; background: transparent; border-color: transparent;" onclick="clearFileSelection(event)">
+                            <i class="fa-solid fa-trash"></i> Remove
+                        </button>
+                    </div>
+                    
+                    <div style="margin-top: 25px;">
+                        <button type="submit" class="btn-primary-modern" id="submit-btn" disabled>
+                            <i class="fa-solid fa-magnifying-glass" style="margin-right: 8px;"></i> Analyze & Match Jobs
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Professional Footer -->
+    <footer class="app-footer">
+        <div class="container">
+            <p>&copy; 2026 CareerMatch AI. Powered by advanced NLP & Machine Learning.</p>
+        </div>
+    </footer>
+
+    <!-- Loading Overlay for Resume processing -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loading-text">Analyzing Resume & Mapping Skills...</div>
+        <p style="color: #4b5563; max-width: 300px; text-align: center; font-size: 14px; font-weight:700;">
+            Our AI is parsing your PDF, extracting key skills, and matching them against active job listings. This will only take a moment.
+        </p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script>
+        // Check authentication state on page load
+        if (!localStorage.getItem('user')) {
+            window.location.href = 'index.html';
+        }
+
+        // Logout action
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('user');
+            sessionStorage.removeItem('last_results');
+            window.location.href = 'index.html';
+        });
+
+        // Loading Screen
+        function showLoading(text) {
+            if (text) {
+                document.getElementById('loading-text').textContent = text;
+            }
+            document.getElementById('loading-overlay').classList.add('active');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').classList.remove('active');
+        }
+
+        // Demo match action
+        document.getElementById('demo-match-nav').addEventListener('click', async (e) => {
+            e.preventDefault();
+            showLoading("Running Demo CV Match Analysis...");
+            const errorAlert = document.getElementById('error-alert');
+            errorAlert.style.display = 'none';
+
+            try {
+                const response = await fetch(`${CONFIG.getApiUrl()}/api/demo_match`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+                if (response.ok && data.status === 'success') {
+                    // Save results to sessionStorage
+                    sessionStorage.setItem('last_results', JSON.stringify({
+                        recommendations: data.recommendations,
+                        stats: data.stats,
+                        chart_base64: data.chart_base64
+                    }));
+                    window.location.href = 'results.html';
+                } else {
+                    hideLoading();
+                    document.getElementById('error-text').textContent = data.message || 'Demo match failed. Make sure database is seeded.';
+                    errorAlert.style.display = 'flex';
+                }
+            } catch (err) {
+                console.error(err);
+                hideLoading();
+                document.getElementById('error-text').textContent = 'Unable to connect to the backend server. Please verify your settings.';
+                errorAlert.style.display = 'flex';
+            }
+        });
+
+        // File Selection Drag & Drop UI code
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const fileDetails = document.getElementById('file-details');
+        const fileNameDisplay = document.getElementById('file-name');
+        const fileSizeDisplay = document.getElementById('file-size');
+        const submitBtn = document.getElementById('submit-btn');
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('dragover');
+        }
+
+        dropZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length) {
+                fileInput.files = files;
+                updateFileDetails(files[0]);
+            }
+        }
+
+        fileInput.addEventListener('change', function(e) {
+            if (this.files.length) {
+                updateFileDetails(this.files[0]);
+            }
+        });
+
+        function updateFileDetails(file) {
+            if (file.type !== "application/pdf") {
+                alert("Please upload a PDF file only.");
+                clearFileSelection();
+                return;
+            }
+            
+            fileNameDisplay.textContent = file.name;
+            
+            let sizeStr = "";
+            if (file.size < 1024 * 1024) {
+                sizeStr = (file.size / 1024).toFixed(1) + " KB";
+            } else {
+                sizeStr = (file.size / (1024 * 1024)).toFixed(1) + " MB";
+            }
+            fileSizeDisplay.textContent = sizeStr;
+            
+            fileDetails.style.display = 'flex';
+            dropZone.style.borderColor = 'var(--success)';
+            submitBtn.removeAttribute('disabled');
+        }
+
+        function clearFileSelection(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            fileInput.value = '';
+            fileDetails.style.display = 'none';
+            dropZone.style.borderColor = 'rgba(99, 102, 241, 0.3)';
+            submitBtn.setAttribute('disabled', 'true');
+        }
+
+        // Upload handler
+        document.getElementById('cv-upload-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            showLoading("Analyzing Resume & Calculating Match Score...");
+            const errorAlert = document.getElementById('error-alert');
+            errorAlert.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('pdfFile', file);
+
+            try {
+                const response = await fetch(`${CONFIG.getApiUrl()}/api/process_uploaded_cv`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (response.ok && data.status === 'success') {
+                    // Save results to sessionStorage
+                    sessionStorage.setItem('last_results', JSON.stringify({
+                        recommendations: data.recommendations,
+                        stats: data.stats,
+                        chart_base64: data.chart_base64
+                    }));
+                    window.location.href = 'results.html';
+                } else {
+                    hideLoading();
+                    document.getElementById('error-text').textContent = data.message || 'Analysis failed. Please try again.';
+                    errorAlert.style.display = 'flex';
+                }
+            } catch (err) {
+                console.error(err);
+                hideLoading();
+                document.getElementById('error-text').textContent = 'Unable to connect to the backend server. Please verify your settings.';
+                errorAlert.style.display = 'flex';
+            }
+        });
+    </script>
+</body>
+</html>
