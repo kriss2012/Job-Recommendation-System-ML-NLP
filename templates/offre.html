@@ -3,10 +3,10 @@
 {% block content %}
 <div style="margin-bottom: 40px;">
     <div style="text-align: center; margin-bottom: 40px;">
-        <h1 style="font-size: 38px; font-weight: 800; letter-spacing: -1px; margin-bottom: 12px; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        <h1 style="font-size: 38px; font-weight: 900; text-transform: uppercase; color: var(--dark); margin-bottom: 12px; display: inline-block; background-color: var(--yellow); padding: 6px 20px; border: var(--border-thick); box-shadow: var(--shadow-flat-sm);">
             🎯 Your AI Job Matches
         </h1>
-        <p style="color: var(--text-secondary); font-size: 16px; max-width: 600px; margin: 0 auto;">
+        <p style="color: #4b5563; font-size: 16px; font-weight: 700; max-width: 600px; margin: 12px auto 0;">
             We've analyzed your resume and calculated compatibility scores across available career opportunities.
         </p>
     </div>
@@ -53,8 +53,8 @@
             
             <!-- Filters Card -->
             <div class="glass-card filters-card">
-                <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 20px; color: white; display: flex; align-items: center; gap: 8px;">
-                    <i class="fa-solid fa-sliders" style="color: var(--accent-primary)"></i> Search & Filter
+                <h3 style="font-size: 18px; font-weight: 900; text-transform: uppercase; margin-bottom: 20px; color: var(--dark); display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-sliders" style="color: var(--dark)"></i> Search & Filter
                 </h3>
                 
                 <div class="filter-row">
@@ -71,8 +71,8 @@
                     <div class="filter-control">
                         <label>Minimum Match Score</label>
                         <div class="slider-container">
-                            <input type="range" id="threshold-slider" class="range-slider" min="20" max="100" value="20">
-                            <span class="slider-val" id="threshold-val">20%</span>
+                            <input type="range" id="threshold-slider" class="range-slider" min="0" max="100" value="5">
+                            <span class="slider-val" id="threshold-val">5%</span>
                         </div>
                     </div>
                     
@@ -93,10 +93,10 @@
             
             <!-- Analytics Chart Card -->
             <div class="glass-card chart-card">
-                <h3 style="font-size: 18px; font-weight: 700; color: white;">
-                    <i class="fa-solid fa-chart-column" style="color: var(--accent-secondary); margin-right: 8px;"></i> Match Analysis Chart
+                <h3 style="font-size: 18px; font-weight: 900; text-transform: uppercase; color: var(--dark); display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-chart-column" style="color: var(--dark)"></i> Match Analysis Chart
                 </h3>
-                <p style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">
+                <p style="color: #4b5563; font-size: 13px; font-weight: 600; margin-top: 4px;">
                     Visualization of the top 10 recommended job positions mapping your profile
                 </p>
                 <div class="chart-wrapper">
@@ -148,7 +148,7 @@
                                         <i class="fa-solid fa-briefcase"></i> {{ job.job_type }}
                                     </span>
                                     {% if job.salary != 'Not specified' %}
-                                    <span class="job-card-tag" style="border-color: rgba(16, 185, 129, 0.2); color: #6ee7b7; background: rgba(16, 185, 129, 0.05);">
+                                    <span class="job-card-tag" style="background-color: #f0fdf4;">
                                         <i class="fa-solid fa-coins"></i> {{ job.salary }}
                                     </span>
                                     {% endif %}
@@ -235,7 +235,7 @@
 
     let currentFilters = {
         search: '',
-        threshold: 0.20,
+        threshold: 0.05,
         jobType: 'all'
     };
 
