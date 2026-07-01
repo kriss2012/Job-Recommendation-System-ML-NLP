@@ -3,7 +3,27 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>CareerMatch AI - Match Results</title>
+    <meta name="description" content="View your KiriGen Jobs matching analysis. See compatibility statistics, interactive chart comparisons, and tailor-made career opportunities based on your parsed skills.">
+    <meta name="keywords" content="KiriGen Jobs Analysis, Skill Fit Analytics, Cosine Similarity Chart, Python Match Dashboard, AI Career Matches">
+    <meta name="author" content="KiriGen Tech">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Google Search Console Verification -->
+    <meta name="google-site-verification" content="GSC_VERIFICATION_TOKEN_PLACEHOLDER">
+    
+    <title>KiriGen Jobs - Resume Match Analytics Dashboard</title>
+    
+    <!-- Structured Data JSON-LD for Google Search Console & SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "KiriGen Jobs",
+      "alternateName": "KiriGen Job Recommendation Dashboard",
+      "url": "https://www.kirigentech.in/",
+      "description": "AI-powered job matching system featuring TF-IDF parsing and cosine similarity metrics."
+    }
+    </script>
     
     <!-- Premium Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,17 +46,17 @@
     </div>
 
     <!-- Navigation Header -->
-    <header class="app-header">
+    <header class="app-header" role="banner">
         <div class="header-container">
-            <a href="index.html" class="brand">
+            <a href="index.html" class="brand" id="brand-home-link">
                 <div class="brand-icon">
                     <i class="fa-solid fa-briefcase"></i>
                 </div>
-                <span>CareerMatch AI</span>
+                <span>KiriGen Jobs</span>
             </a>
             
-            <nav class="nav-links">
-                <a href="upload.html" class="nav-link">
+            <nav class="nav-links" role="navigation" aria-label="Main Navigation">
+                <a href="upload.html" class="nav-link" id="nav-upload-link">
                     <i class="fa-solid fa-cloud-arrow-up"></i> Upload Resume
                 </a>
                 <a href="#" class="nav-link" id="demo-match-nav">
@@ -50,7 +70,7 @@
     </header>
 
     <!-- Main Content Area -->
-    <main class="app-main-content">
+    <main class="app-main-content" role="main">
         <div style="margin-bottom: 40px;">
             <div style="text-align: center; margin-bottom: 40px;">
                 <h1 style="font-size: 38px; font-weight: 900; text-transform: uppercase; color: var(--dark); margin-bottom: 12px; display: inline-block; background-color: var(--yellow); padding: 6px 20px; border: var(--border-thick); box-shadow: var(--shadow-flat-sm);">
@@ -173,14 +193,14 @@
     </main>
 
     <!-- Professional Footer -->
-    <footer class="app-footer">
+    <footer class="app-footer" role="contentinfo">
         <div class="container">
-            <p>&copy; 2026 CareerMatch AI. Powered by advanced NLP & Machine Learning.</p>
+            <p>&copy; 2026 KiriGen Jobs. Powered by advanced NLP & Machine Learning. All Rights Reserved.</p>
         </div>
     </footer>
 
     <!-- Loading Overlay for Resume processing -->
-    <div class="loading-overlay" id="loading-overlay">
+    <div class="loading-overlay" id="loading-overlay" aria-live="assertive" aria-hidden="true">
         <div class="spinner"></div>
         <div class="loading-text" id="loading-text">Analyzing Resume & Mapping Skills...</div>
         <p style="color: #4b5563; max-width: 300px; text-align: center; font-size: 14px; font-weight:700;">
@@ -217,7 +237,7 @@
             document.getElementById('chart-img').src = 'images/similarite.png'; // Fallback
         }
 
-        // Helper to escape HTML tags
+        // Helper to escape HTML tags to prevent XSS
         function escapeHtml(str) {
             if (!str) return '';
             return str.toString()
@@ -350,14 +370,18 @@
 
         // Loading Screen functions
         function showLoading(text) {
+            const overlay = document.getElementById('loading-overlay');
             if (text) {
                 document.getElementById('loading-text').textContent = text;
             }
-            document.getElementById('loading-overlay').classList.add('active');
+            overlay.classList.add('active');
+            overlay.setAttribute('aria-hidden', 'false');
         }
 
         function hideLoading() {
-            document.getElementById('loading-overlay').classList.remove('active');
+            const overlay = document.getElementById('loading-overlay');
+            overlay.classList.remove('active');
+            overlay.setAttribute('aria-hidden', 'true');
         }
 
         // Demo match action
@@ -381,7 +405,7 @@
                     window.location.reload();
                 } else {
                     hideLoading();
-                    alert(data.message || 'Demo match failed. Make sure database is seeded.');
+                    alert(escapeHtml(data.message || 'Demo match failed. Make sure database is seeded.'));
                 }
             } catch (err) {
                 console.error(err);
