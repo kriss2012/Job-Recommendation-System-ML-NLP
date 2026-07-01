@@ -1,8 +1,3 @@
 User-agent: *
 Allow: /
-Disallow: /backend/*
-Disallow: /data/*
-Disallow: /models/*
-Disallow: /scraped_jobs/*
-Disallow: /temp_pdf/*
 Sitemap: https://www.kirigentech.in/sitemap.xml
